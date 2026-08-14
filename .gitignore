@@ -1,0 +1,18 @@
+# sbt / Scala
+target/
+project/target/
+project/project/
+.bsp/
+
+# IDE and tooling
+.metals/
+.bloop/
+.scala-build/
+.idea/
+.vscode/
+
+# Assembled site
+dist/
+
+# OS
+.DS_Store

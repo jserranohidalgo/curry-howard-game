@@ -1,0 +1,17 @@
+/* URJC webfonts — local declarations.
+ *
+ * The design system's own fonts.css @imports these four families from Google
+ * Fonts. That cannot stand in this app: D3 requires the game to load and play
+ * with no network, and a remote @import is a hard dependency in the critical
+ * path. The families are declared here as the tokens name them; until the woff2
+ * files are vendored into static/fonts/, the stacks fall back to system faces
+ * and the app renders in the right shapes but not the right typefaces.
+ *
+ * Vendoring the four families is a Phase 8 (design fidelity) item — see ToDo.md.
+ * The families are substitutes in the first place: the URJC Manual de identidad
+ * visual was unavailable, so Archivo / Source Sans 3 / Source Serif 4 / IBM Plex
+ * Mono stand in for the corporate typeface (D16).
+ */
+
+/* Nothing to declare yet — the stacks in tokens/typography.css already carry
+   system fallbacks. @font-face rules land here when the files are vendored. */

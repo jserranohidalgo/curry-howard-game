@@ -1,0 +1,10 @@
+:root{
+  /* URJC print/web material is squared: blocks, photo crops and rules are hard
+     edges. Radii stay minimal and are never larger than 4px except on pills. */
+  --radius-0:0px;
+  --radius-1:2px;
+  --radius-2:4px;
+  --radius-pill:999px;
+  --radius-control:var(--radius-2);
+  --radius-card:var(--radius-0);
+}

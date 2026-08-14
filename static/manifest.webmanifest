@@ -1,0 +1,20 @@
+{
+  "name": "The Curry–Howard Game",
+  "short_name": "Curry–Howard",
+  "description": "Un juego para aprender lógica y programación a través de la correspondencia de Curry–Howard.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#f7f7f8",
+  "theme_color": "#e90129",
+  "icons": [
+    {
+      "src": "./assets/logo-urjc.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

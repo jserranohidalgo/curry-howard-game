@@ -1,0 +1,49 @@
+:root{
+  --font-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --font-sans:"Source Sans 3","Helvetica Neue",Arial,sans-serif;
+  --font-serif:"Source Serif 4",Georgia,serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+
+  --fs-display-1:64px;
+  --fs-display-2:48px;
+  --fs-h1:36px;
+  --fs-h2:28px;
+  --fs-h3:22px;
+  --fs-h4:18px;
+  --fs-body-lg:19px;
+  --fs-body:17px;
+  --fs-body-sm:15px;
+  --fs-caption:13px;
+  --fs-overline:12px;
+
+  --lh-tight:1.06; /* @kind other */
+  --lh-snug:1.2; /* @kind other */
+  --lh-normal:1.5; /* @kind other */
+  --lh-loose:1.62; /* @kind other */
+
+  --fw-regular:400; /* @kind other */
+  --fw-medium:500; /* @kind other */
+  --fw-semibold:600; /* @kind other */
+  --fw-bold:700; /* @kind other */
+  --fw-black:800; /* @kind other */
+
+  --ls-display:-0.02em; /* @kind other */
+  --ls-heading:-0.01em; /* @kind other */
+  --ls-body:0; /* @kind other */
+  --ls-overline:0.10em; /* @kind other */
+
+  --measure-text:66ch; /* @kind other */
+  --measure-narrow:46ch; /* @kind other */
+
+  /* Semantic type roles */
+  --type-display:var(--fw-black) var(--fs-display-1)/var(--lh-tight) var(--font-display); /* @kind font */
+  --type-h1:var(--fw-bold) var(--fs-h1)/var(--lh-snug) var(--font-display); /* @kind font */
+  --type-h2:var(--fw-bold) var(--fs-h2)/var(--lh-snug) var(--font-display); /* @kind font */
+  --type-h3:var(--fw-semibold) var(--fs-h3)/1.3 var(--font-display); /* @kind font */
+  --type-body:var(--fw-regular) var(--fs-body)/var(--lh-normal) var(--font-sans); /* @kind font */
+  --type-lead:var(--fw-regular) var(--fs-body-lg)/var(--lh-loose) var(--font-sans); /* @kind font */
+  --type-quote:italic var(--fw-regular) var(--fs-h3)/1.42 var(--font-serif); /* @kind font */
+  --type-caption:var(--fw-regular) var(--fs-caption)/1.45 var(--font-sans); /* @kind font */
+  --type-overline:var(--fw-bold) var(--fs-overline)/1.2 var(--font-display); /* @kind font */
+  --type-ui:var(--fw-semibold) var(--fs-body-sm)/1.2 var(--font-display); /* @kind font */
+}

@@ -1,0 +1,75 @@
+:root{
+  /* ---- Brand ---- */
+  --urjc-red:#e90129;            /* corporate red, taken from Logo_URJC.svg */
+  --urjc-red-dark:#b80020;       /* hover / press */
+  --urjc-red-darker:#8c0018;
+  --urjc-red-tint:#fdeaee;       /* wash behind red content */
+  --urjc-red-tint-strong:#f9c3cd;
+  --urjc-black:#000000;          /* logotype black */
+  --urjc-grey:#666666;           /* secondary grey from the logo file */
+  --urjc-white:#ffffff;
+
+  /* ---- Neutral ramp ---- */
+  --grey-0:#ffffff;
+  --grey-50:#f7f7f8;
+  --grey-100:#f0f0f1;
+  --grey-200:#e2e2e4;
+  --grey-300:#c9c9cd;
+  --grey-400:#a3a3a9;
+  --grey-500:#7d7d84;
+  --grey-600:#666666;
+  --grey-700:#4a4a4f;
+  --grey-800:#2a2a2d;
+  --grey-900:#141416;
+  --grey-1000:#000000;
+
+  /* ---- Semantic status (derived, not from the brand manual) ---- */
+  --green-600:#1e7b3c;
+  --green-tint:#e8f4ec;
+  --amber-600:#b57200;
+  --amber-tint:#fdf3e0;
+  --blue-600:#14507d;
+  --blue-tint:#e8f0f6;
+
+  /* ---- Aliases: text ---- */
+  --text-strong:var(--grey-1000);
+  --text-body:var(--grey-800);
+  --text-muted:var(--grey-600);
+  --text-faint:var(--grey-500);
+  --text-inverse:var(--urjc-white);
+  --text-brand:var(--urjc-red);
+  --text-link:var(--urjc-red);
+  --text-link-hover:var(--urjc-red-dark);
+
+  /* ---- Aliases: surface ---- */
+  --surface-page:var(--urjc-white);
+  --surface-subtle:var(--grey-50);
+  --surface-card:var(--urjc-white);
+  --surface-sunken:var(--grey-100);
+  --surface-inverse:var(--grey-1000);
+  --surface-brand:var(--urjc-red);
+  --surface-brand-hover:var(--urjc-red-dark);
+  --surface-brand-wash:var(--urjc-red-tint);
+
+  /* ---- Aliases: line ---- */
+  --border-subtle:var(--grey-200);
+  --border-default:var(--grey-300);
+  --border-strong:var(--grey-900);
+  --border-brand:var(--urjc-red);
+  --rule-thick:3px;
+
+  /* ---- Aliases: status ---- */
+  --status-success:var(--green-600);
+  --status-success-wash:var(--green-tint);
+  --status-warning:var(--amber-600);
+  --status-warning-wash:var(--amber-tint);
+  --status-error:var(--urjc-red-dark);
+  --status-error-wash:var(--urjc-red-tint);
+  --status-info:var(--blue-600);
+  --status-info-wash:var(--blue-tint);
+
+  --focus-ring:0 0 0 3px rgba(233,1,41,.35);
+  --overlay-scrim:rgba(20,20,22,.62);
+  /* Image protection gradient used under text on photography */
+  --scrim-photo:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.15) 45%,rgba(0,0,0,.78) 100%); /* @kind color */
+}

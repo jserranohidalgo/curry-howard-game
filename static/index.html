@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Curry–Howard Game</title>
+  <meta name="description" content="Un juego para aprender lógica y programación a través de la correspondencia de Curry–Howard." />
+  <meta name="theme-color" content="#e90129" />
+  <link rel="icon" href="./assets/logo-urjc.svg" type="image/svg+xml" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./styles/tokens/colors.css" />
+  <link rel="stylesheet" href="./styles/tokens/typography.css" />
+  <link rel="stylesheet" href="./styles/tokens/spacing.css" />
+  <link rel="stylesheet" href="./styles/tokens/radius.css" />
+  <link rel="stylesheet" href="./styles/tokens/elevation.css" />
+  <link rel="stylesheet" href="./styles/tokens/motion.css" />
+  <link rel="stylesheet" href="./styles/fonts.css" />
+  <link rel="stylesheet" href="./styles/base.css" />
+</head>
+<body>
+  <div id="app"></div>
+  <script src="./js/main.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js');
+      });
+    }
+  </script>
+</body>
+</html>
