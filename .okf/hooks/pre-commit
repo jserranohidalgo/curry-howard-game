@@ -1,0 +1,46 @@
+#!/bin/sh
+# OKF archive log hook.
+# Appends newly-added files under $WATCH to $LOG, grouped by date, and stages
+# $LOG into the same commit. Idempotent per commit; no-op when nothing new
+# lands under $WATCH.
+#
+# Installed via .okf/install.sh (symlinked into .git/hooks/pre-commit).
+
+set -eu
+
+# --- configure for your repo ------------------------------------------------
+# WATCH: directory whose new files are logged. Use "." to watch the whole repo.
+# LOG:   the provenance log to append to (must already exist).
+WATCH="."
+LOG="log.md"
+# ---------------------------------------------------------------------------
+
+# Newly ADDED (not modified/renamed) staged paths under $WATCH, minus the OKF
+# meta files, dot-directories, and editor/VCS cruft.
+NEW=$(git diff --cached --name-only --diff-filter=A -- "$WATCH" \
+  | grep -Ev "(^${LOG}\$|/log\.md\$|/index\.md\$|^\.|/\.|/\.DS_Store\$|~\$)" \
+  || true)
+
+[ -z "$NEW" ] && exit 0
+
+# $LOG should already exist (seeded when the bundle was created); bail loudly
+# rather than silently inventing a headerless file.
+if [ ! -f "$LOG" ]; then
+  echo "okf pre-commit: $LOG missing — skipping archive log update" >&2
+  exit 0
+fi
+
+DATE=$(date +%Y-%m-%d)
+
+# Ensure a section header for today (log is append-only, newest at bottom, so
+# today's header is always the last one and new entries land beneath it).
+if ! grep -q "^## ${DATE}\$" "$LOG"; then
+  printf '\n## %s\n' "$DATE" >> "$LOG"
+fi
+
+printf '%s\n' "$NEW" | while IFS= read -r f; do
+  [ -n "$f" ] && printf -- '- added `%s`\n' "$f" >> "$LOG"
+done
+
+git add "$LOG"
+exit 0
