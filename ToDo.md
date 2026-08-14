@@ -16,27 +16,29 @@ Conventions:
 
 ## To do
 
-Active focus: **Phase 1 — Foundations**. Phase 0 is closed; the decisions are recorded in [Roadmap.md](Roadmap.md), and the scope they set for the first release is in [README.md](README.md).
+Active focus: **Phase 2 — Engine core**. Phase 1's build is up and verified; Phase 0's decisions are recorded in [Roadmap.md](Roadmap.md), and the scope they set for the first release is in [README.md](README.md).
 
 **Open from Phase 0**
 
 - [ ] Confirm whether the copyright holder is you or URJC, and correct the line in [LICENSE](LICENSE) if it is the university
 - [ ] Re-evaluate the 10 September date at the Phase 4 checkpoint (end of August) and reschedule or reduce scope if it is not closing
 
-**Phase 1 — Foundations**
+**Phase 1 — Foundations** (done bar the tail)
 
-- [ ] sbt build: `engine` as a Scala 3 cross-project (JVM + JS), `web` as a Scala.js/Laminar app, with ScalaCheck on the JVM side
-- [ ] Bundling and dev server for the Laminar app; formatting and linting
-- [ ] Stand up the offline/PWA shell early — service worker plus cache manifest, verified with the network off
-- [ ] Bring the URJC tokens from `doc/mockup/design/urjc/tokens/` in as the app's real token layer (not a second layer over legacy names)
-- [ ] Vendor the URJC logo assets and the Lucide glyphs as plain SVG
+- [ ] Add scalafmt, and CI if we want it
+- [ ] Vendor the four typefaces as woff2 into `static/fonts/` and declare them in `static/styles/fonts.css` — the design system @imports them from Google Fonts, which contradicts D3 (Phase 8 fidelity item)
 
 **Phase 2 — Engine core**
 
-- [ ] Re-implement `doc/mockup/design/logic.jsx` in Scala 3 as sealed hierarchies: types, terms, holes, scope, `legalMoves`, `applyMove`, game tree
-- [ ] Make moves data rather than closures, so game state can be serialized (D4/D5)
-- [ ] Key a node's children by the (hole, move) pair that produced them — the fix that makes Phase 6's exhaustion sound
-- [ ] Strip i18n out of the engine — emit structured move descriptors, translate at the edge
+- [ ] Relicense the reused parts of [hablapps/tdd](https://github.com/hablapps/tdd/tree/lambdadays25) from CC BY-SA 4.0 to MIT (D20) — needed before any of it lands here
+- [ ] Add cats to the engine and confirm the calculus and `initial` layers compile on Scala 3.3 LTS without `-experimental`
+- [ ] Port `Sequent`, `Rule`, `Calculus`, `SearchSpace`, `Proof`, `SearchStrategy`, `Mu`, `Tree` as the engine skeleton
+- [ ] Instantiate `Form` and `Term` for the game: the ADT interpretation plus a Scala-source printer and a proposition printer
+- [ ] Write `Calculus[NJ]` — the game's natural-deduction rule set from specification §3.2, backward and forward destructors included
+- [ ] Bring `Calculus[LJT]` across as the reference decision procedure for Phase 6
+- [ ] Game tree over the lazy search space, children keyed by the (hole, move) pair that produced them
+- [ ] Keep engine state serializable — moves as data, no closures (D4/D5)
+- [ ] Structured move descriptors, no i18n inside the engine
 - [ ] Write an independent type checker `check(term, ctx)` and use it to verify every term the engine builds
 - [ ] Test: reproduce the §4.9 distributivity playthrough move for move
 - [ ] Test: ScalaCheck properties for well-typedness and for game-tree serialization round-trip
@@ -70,6 +72,8 @@ Active focus: **Phase 1 — Foundations**. Phase 0 is closed; the decisions are 
 
 ## Done
 
+- [x] Adopt the coalgebraic engine architecture of [hablapps/tdd](https://github.com/hablapps/tdd/tree/lambdadays25) (D20), analyzed in [doc/tdd-lambdadays25.md](doc/tdd-lambdadays25.md), and revise Phase 2 and Phase 6 around it (2026-08-15)
+- [x] Phase 1 — sbt/Scala.js/Laminar build, engine cross-built JVM+JS, no-bundler static assembly, PWA shell verified offline (2026-08-15)
 - [x] Licence: MIT, added as [LICENSE](LICENSE) (2026-08-15)
 - [x] Set the release date: Thursday 10 September 2026, the course start, with scope kept and the Phase 4 checkpoint as the reschedule trigger (2026-08-15)
 - [x] Close Phase 0 — decide the design space (D1–D19), record the answers in [README.md](README.md) and [Roadmap.md](Roadmap.md), and revise Phases 1–9 against them (2026-08-15)

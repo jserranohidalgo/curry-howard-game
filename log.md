@@ -69,3 +69,4 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `static/styles/tokens/typography.css`
 - added `static/sw.js`
 - added `web/src/main/scala/curryhoward/web/Main.scala`
+- added `doc/tdd-lambdadays25.md`

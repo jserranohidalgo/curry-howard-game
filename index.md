@@ -27,6 +27,7 @@ This `index.md` is the machine-navigable entry point. The bundle root is the rep
 
 <!-- okf:concepts -->
 - [doc/mockup.md](/doc/mockup.md) — *Design Handoff*: the URJC-branded UI/UX handoff for the minimal IPL version, its running JavaScript engine and parser prototype, what to port vs. rebuild, and the gaps found in the prototype. Describes [`/doc/mockup`](/doc/mockup).
+- [doc/tdd-lambdadays25.md](/doc/tdd-lambdadays25.md) — *Reference Implementation*: the coalgebraic LJ/LJT sequent calculi in `hablapps/tdd`, assessed for reuse in the engine — what transfers, what does not, and what it changes in the plan.
 
 ## Bundle conventions
 
