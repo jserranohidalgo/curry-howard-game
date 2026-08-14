@@ -47,3 +47,4 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `doc/mockup/screenshots/10-help-steps.png`
 - added `doc/mockup/screenshots/11-help-glossary.png`
 - added `doc/mockup/screenshots/12-home-es.png`
+- added `LICENSE`

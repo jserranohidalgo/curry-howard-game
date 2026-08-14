@@ -10,123 +10,123 @@ timestamp: 2026-08-15
 
 The workplan to a **first working application for intuitionistic propositional logic (IPL)**. What the game is, what it is for, the principles behind it, and the assets it starts from are in [README.md](README.md); the granular, actionable items are in [ToDo.md](ToDo.md). This file is the plan itself.
 
-Ten phases. Each names what it delivers, what it depends on, and how we know it is done. Phases 0–9 constitute the first application; work that deliberately falls outside it is listed under *Beyond the first application*. The plan is shaped by the fact that this is not a green-field build: an engine and a parser already run in the design handoff, and the UI is designed down to the token, so most phases are a port or a faithful re-implementation rather than an invention.
+Ten phases. Each names what it delivers, what it depends on, and how we know it is done. Phases 0–9 constitute the first application; work that deliberately falls outside it is listed under *Beyond the first application*. The plan is shaped by the fact that this is not a green-field build: an engine and a parser already run in the design handoff, and the UI is designed down to the token, so several phases are a re-implementation from a precise specification rather than an invention.
 
-**Phases 1–9 are written against the provisional defaults recommended in Phase 0.** They are a plan for one reading of the design space, not the only one; closing Phase 0 differently revises them, which is exactly why it comes first.
+**Phase 0 is closed** (2026-08-15); Phases 1–9 have been revised against its answers. The two that reshaped the plan most: the application is **Scala.js throughout**, so the handoff's JavaScript is a specification to transcribe rather than code to port; and the negative ending ships **only in its finite form**, which narrows Phase 6 and moves cycle detection past the first release.
 
-## Phase 0 — Decide the design space
+## Phase 0 — The design space (decided 2026-08-15)
 
-Nothing here is code. The specification fixes the *rules* of the game and the handoff fixes the *look*, but neither says what kind of software we are building — and several of the open questions change the architecture rather than merely the schedule. Answer them first, write the answers down, and only then scaffold anything.
-
-Each decision below gives the options, a recommended default (so the plan has something to be written against) and what it changes downstream. A recommendation is a starting position, not a conclusion.
+Nothing here was code. The specification fixes the *rules* of the game and the handoff fixes the *look*, but neither says what kind of software we are building — and several of the open questions changed the architecture rather than merely the schedule. This is the record of what was decided and why; the product, state and scope answers are also written up as [README.md](README.md)'s *Scope of the first release*.
 
 ### Product shape and delivery
 
-**D1 — Which platforms are in the first release?** *Options:* web desktop only · responsive web that also plays on a phone · web plus a separate mobile app. The specification names a web desktop app *and* a mobile app, but the handoff designs only the desktop layout, and the two-column Play screen has no phone design yet. *Recommendation:* web desktop for the first release, responsive down to a laptop, mobile after it. *Downstream:* the layout work in Phase 8, and whether Phase 9 includes app-store work at all.
-
-**D2 — If mobile is in scope, is it a hybrid shell or a native client?** *Options:* a wrapper around the web app (Capacitor/PWA) · a second client sharing the engine (React Native, native) · a genuinely native rewrite. *Recommendation:* hybrid, reusing the engine untouched. *Downstream:* D8 (the engine's language must be reachable from the mobile client), and how much of Phase 8's UI can be shared.
-
-**D3 — Where does it run, and is a server available at all?** *Options:* static hosting (GitHub Pages, URJC web space) with no backend · a university-hosted service with a backend. Also: should it be installable and playable offline (PWA)? Classrooms have unreliable wifi and the game needs no network to work. *Recommendation:* static, no backend, offline-capable. *Downstream:* this single answer settles the ceiling on D4–D7 — no backend means no accounts and no server-side collection.
+- **D1 — Platforms.** **Web desktop first**, responsive down to a laptop; mobile after the first release. The specification names a mobile app too, but the handoff designs only the desktop layout and the two-column Play screen has no phone design.
+- **D2 — Mobile client shape.** *Deferred with mobile itself.* The engine stays framework-free and is cross-built (D19), so both a hybrid shell around the web app and a separate client remain open.
+- **D3 — Hosting.** **Static, no backend, offline-capable.** Deployable to GitHub Pages or URJC web space; installable and playable with no network, so classroom wifi cannot break a session. This answer sets the ceiling for D4–D7.
 
 ### State and data
 
-**D4 — Is the game stateful across sessions?** *Options:* (a) purely in-memory, a refresh restarts — what the prototype does; (b) local persistence: resume the game in progress, keep a history of goals solved; (c) server-side accounts with saved progress. *Recommendation:* (b), local only. *Downstream:* Phase 1's skeleton and, more importantly, a serialization requirement on the engine's state that is cheap in Phase 2 and expensive to retrofit.
-
-**D5 — If state is saved, what exactly is saved?** *Options:* the current position only · the whole explored game tree · the tree plus a history of finished games. The tree *is* the teaching artefact — it is what shows the student their dead ends — and it is small JSON. *Recommendation:* the whole tree of the current game, plus a list of goals solved. *Downstream:* the engine's node representation must stay serializable (no closures in stored state — note that today's `Move` carries a `build()` function).
-
-**D6 — Should goals and plays be shareable by URL?** Encoding the goal — and optionally the move list — in a link lets a teacher set an exercise and a student hand back a proof, with no accounts and no backend. *Recommendation:* yes for goals in the first release, plays after it. *Downstream:* needs the parser/printer round-trip that is already a Phase 3 exit criterion, plus replay of a move list in the engine.
-
-**D7 — Does the course need to collect student work?** Grading, submission, per-student analytics. This is the one requirement that forces a backend, accounts, and a data-protection review — so it must be answered now even though the answer is probably "no". *Recommendation:* out of scope for the first application; revisit only with a concrete teaching need. *Downstream:* everything about D3–D5.
+- **D4/D5 — Persistence.** **Save the whole explored game tree, locally.** A student can close a laptop mid-proof and resume with every branch, dead end and backtrack intact — the tree is the teaching artefact, not a cache. Imposes one constraint on Phase 2: engine state must be serializable, so a move must be *data* rather than the `build()` closure the prototype carries.
+- **D6 — Sharing by URL.** **Not in the first release.** Goals are typed into Setup or picked from the examples. A link-based way to set an exercise can be added later without rework, since it rides on the parser/printer round-trip.
+- **D7 — Collecting student work.** **Out of scope**, by construction: D3 leaves no server to collect it. A real need for submission, grading or analytics means reopening D3 first, and brings a data-protection review with it.
 
 ### Language and stack
 
-**D8 — Which language for the engine?** *Options:* **TypeScript** — the handoff prototype is JavaScript, so the port is near-mechanical, and it runs everywhere the UI does · **Scala.js** — the game's object language *is* Scala and the teaching notebooks under [doc/](doc/) are Scala, so the engine could share code with the course material, at the cost of tooling friction on the UI side · something else entirely. *Recommendation:* TypeScript, unless sharing code with the notebooks is a real goal rather than an attractive one. *Downstream:* Phases 1–3 outright, and D2.
-
-**D9 — Which UI framework?** *Options:* React (what the handoff is written in) · Vue/Svelte/other. The handoff insists its markup and CSS be rebuilt idiomatically whatever the choice, so this is not settled by the prototype — only the engine and parser are. *Recommendation:* React, to keep the port mechanical. *Downstream:* Phase 1, and the shape of Phases 5–8.
-
-**D10 — One package or two?** *Options:* a single app with the engine inside it · separate `engine/` and `web/` packages. Keeping the engine independent is an approach commitment in [README.md](README.md) and it is what makes both the mobile client and the second logic cheap. *Recommendation:* two packages from the first commit. *Downstream:* Phase 1.
-
-**D11 — What testing tooling?** The Phase 2 and Phase 3 exit criteria assume **property-based testing** (generate random types and move sequences, check invariants). Confirm the chosen language has it — `fast-check` for TypeScript, ScalaCheck for Scala — and that we intend to use it. *Recommendation:* yes; it is the cheapest guarantee that the engine only ever builds well-typed terms. *Downstream:* Phase 1's test setup; the exit criteria of Phases 2–3 as written.
+- **D8 — Language.** **Scala.js throughout.** The engine is an ADT interpreter, and sealed traits with exhaustive matching are a genuine correctness aid for exactly that — adding a type former makes the compiler enumerate every unhandled case. The object language rendered in the programmer view is Scala, and the notebooks under [doc/](doc/) are Scala. The cost, accepted knowingly: the handoff's JavaScript becomes a *specification to transcribe* rather than code to port, and the UI is written rather than ported.
+- **D9 — UI library.** **Laminar.** Direct DOM, no virtual DOM, thin abstraction — which is what recreating a pixel-specified design with hand-written CSS needs. (Tyrian was the near miss: the handoff's state model is an Elm model verbatim.)
+- **D10 — Packaging.** **Separate `engine/` and `web/`**, from the first commit, with the engine importing nothing from the UI.
+- **D11 — Testing.** **Property-based testing with ScalaCheck**, alongside example-based tests. It is the cheapest guarantee that the engine only ever builds well-typed terms.
+- **D19 — Build layout.** **sbt with the engine cross-built to JVM and JS.** The property suites run on the JVM at full speed while the web app consumes the JS artifact — which matters most in Phase 6, where the search space gets probed hard.
 
 ### Scope of the first release
 
-**D12 — Do both views ship, or programmer view first?** The correspondence *is* the product, which argues for both; the natural-deduction renderer is also the second-largest risk in the plan. *Recommendation:* both — but Phase 7 stays separable so it can slip without blocking a release.
-
-**D13 — Does the negative ending ship?** Phase 6 is the schedule risk. *Options:* ship it · ship only the finite case (dead ends and finite exhaustion, which already work) and defer cycle detection. *Recommendation:* ship it, with the honest fallback that a search we cannot decide simply continues — the app must never falsely declare a goal refuted.
-
-**D14 — EN and ES at launch, or EN first?** The handoff already carries both dictionaries. *Recommendation:* both.
-
-**D15 — Free-form goals, a curated puzzle list, or both?** The handoff does both: a goal field plus five examples. A graded ladder and progression are explicitly deferred. *Recommendation:* both, with no progression in the first release.
+- **D12 — Views.** **Both**, from the start. The correspondence is the product.
+- **D13 — Negative ending.** **Finite case only.** Dead ends and exhaustion of a *finite* search space ship, so excluded middle is refutable; cycle detection for infinite searches is deferred. The invariant that holds either way: an undecided search simply continues, and the app never declares a goal refuted that has not been refuted.
+- **D14 — Languages.** **Spanish and English** at launch, across interface, move labels and parser errors.
+- **D15 — Goals.** **Free-form entry and curated examples**, as the handoff designs — including one deliberate non-theorem. No difficulty ladder or progression.
 
 ### Institutional and non-functional
 
-**D16 — Is URJC branding approved for this, and can we get the real assets?** The handoff's typefaces are documented substitutes and its atom and status colours are derived, because the *Manual de identidad visual* was unavailable; the logo files are also meant to be requested from the Dirección de Comunicación rather than reused. *Recommendation:* request both now — the swap is a one-file change if it arrives before Phase 8, and a re-do afterwards.
+- **D16 — Branding.** **Ship with the documented substitutes**: Archivo / Source Sans 3 / Source Serif 4 / IBM Plex Mono, the derived atom and status colours, and the logo files as they arrive in the handoff. Faster, and accepted with its two risks — a rebrand pass if the *Manual de identidad visual* later contradicts the substitutes, and institutional assets used without sign-off from the Dirección de Comunicación.
+- **D17 — Licence.** **MIT**, in [LICENSE](LICENSE). Short enough that a student can read it, and compatible with everything including GPLv2 — which Apache-2.0 is not. There is no plausible patent surface in a teaching game, so Apache-2.0's patent grant would have bought little for its extra weight. One thing still worth confirming: the copyright line names the author, but as university work the holder may be URJC — changing it is a one-line edit.
+- **D18a — Accessibility and support.** **Not a goal for the first release.** No conformance target and no audit; current Chrome, Firefox, Safari and Edge are the support matrix. The keyboard behaviour the handoff specifies — `Enter` submits in Setup, `Esc` dismisses a dialog and never confirms — is design fidelity and still ships. Noted once for the record: if the app is hosted on URJC infrastructure, Spanish public-sector rules (RD 1112/2018 / EN 301 549) may impose a conformance level regardless of this decision.
+- **D18b — Deadline.** **Thursday 10 September 2026**, the course start. The scope agreed in D12–D15 stands as answered; the plan is to keep both, measure progress, and reschedule if the work says so rather than pre-emptively cutting. See *Known gaps and risks* for the checkpoint that decides it.
 
-**D17 — Licence and repository home.** Open source (which licence?) or university-internal? It affects contribution, hosting, and which dependencies we may take. *Recommendation:* decide before the repository becomes public in Phase 9.
-
-**D18 — Support matrix, accessibility target, and the deadline.** Which browsers and machines does the course actually use — lab desktops, student laptops, phones? What accessibility level do we commit to (WCAG 2.2 AA is the usual public-university baseline)? And is there a course date the release must hit? The academic calendar is a real scheduling input and belongs in the plan, not in someone's head. *Recommendation:* fix all three before Phase 1, since the deadline determines whether D12 and D13 stay as recommended.
-
-*Depends on:* nothing. *Done when:* every decision above has an answer recorded — the product, state and scope answers (D1–D7, D12–D15) in [README.md](README.md) as goal and scope, the stack and institutional answers (D8–D11, D16–D18) in this file — and Phases 1–9 have been revised where an answer diverges from the default they were written against.
+*Done when:* every decision above has an answer recorded, and Phases 1–9 have been revised where an answer diverges from the default they were written against. **Both are done**, except for the release date under D18b and the licence choice under D17.
 
 ## Phase 1 — Foundations
 
-Set up the project skeleton: an `engine/` package (pure, dependency-free, no UI imports) and a `web/` app, a test runner including the property-based tooling from D11, formatting and linting, and the URJC token layer brought in from `doc/mockup/design/urjc/tokens/` as the app's real token source — not as a second layer over legacy names, which the handoff explicitly warns against. Vendor the logo assets and the Lucide icon set properly (the prototype inlines icons only because its sandbox blocked remote CSS).
+An sbt build with two modules: `engine`, a cross-project in Scala 3 building for both the JVM and Scala.js, depending on nothing but the standard library; and `web`, a Scala.js application on Laminar. ScalaCheck and a unit-test framework wired into the JVM side of the engine, formatting and linting, and a bundler serving the Laminar app. The URJC token files from `doc/mockup/design/urjc/tokens/` come in as the app's real token source — not as a second layer over legacy names, which the handoff explicitly warns against. Vendor the logo assets and the Lucide glyphs as plain SVG (the prototype inlines them as JSX only because its sandbox blocked remote CSS). Add the licence file from D17, and stand up the offline/PWA shell early rather than bolting it on at the end — with a Scala.js bundle it is a service worker plus a cache manifest, and it is easier to keep working than to retrofit.
 
-*Depends on:* Phase 0. *Done when:* the dev server serves an empty branded shell, the test command runs, and CI (if we want it) is green.
+*Depends on:* Phase 0. *Done when:* the dev server serves an empty branded shell, `sbt test` runs the engine's JVM suites, the app builds to static files that load with the network switched off, and CI (if we want it) is green.
 
 ## Phase 2 — Engine core
 
-Port `doc/mockup/design/logic.jsx`: the type model, term and hole model, per-hole scope, `legalMoves`, `applyMove`, `collectHoles`/`replaceHole`, `termStatus`, and the persistent game tree. Three deliberate changes during the port: **strip i18n out of the engine** (it currently calls `t()` while generating moves — emit structured move descriptors instead and translate at the edge), **keep the stored state serializable** if D4/D5 call for persistence (today a `Move` carries a `build()` closure, which cannot be saved), and add an **independent type checker** `check(term, ctx)` that the tests use to verify that every term the engine builds is well-typed. Fix the printer to re-sugar `A ⟶ ⊥` as `¬a` in logician notation, which the parser already accepts on input.
+Re-implement `doc/mockup/design/logic.jsx` in Scala 3, treating it as a precise specification rather than as code to translate line by line: the type model, term and hole model, per-hole scope, `legalMoves`, `applyMove`, `collectHoles`/`replaceHole`, `termStatus`, and the persistent game tree. Types and terms become sealed hierarchies so the compiler enumerates the cases — which is most of why D8 went the way it did.
 
-*Depends on:* Phase 1. *Done when:* the specification's §4.9 distributivity playthrough is reproduced move for move by a test; property tests generate random move sequences and the type checker accepts every resulting term; the move set matches §3.2 of the specification cell by cell, including the backward/forward distinction for `∧.E` and `⟶.E`.
+Four deliberate departures from the prototype:
+
+- **No i18n in the engine.** It currently calls `t()` while generating moves; emit structured move descriptors and translate at the edge.
+- **Moves are data, not closures.** A `Move` today carries a `build()` function, so game state cannot be serialized — and D4/D5 require saving the whole tree. Describe the move as a value and let the engine interpret it.
+- **Children keyed by the move that produced them.** The prototype appends a child per application, so replaying the same move from the same node yields two children for one (hole, move) pair — which is what makes exhaustion unsound in Phase 6. Key children by their pair from the start.
+- **An independent type checker** `check(term, ctx)`, used by the tests to verify that every term the engine builds is well-typed rather than trusting move generation.
+
+Also fix the printer to re-sugar `A ⟶ ⊥` as `¬a` in logician notation, which the parser already accepts on input.
+
+*Depends on:* Phase 1. *Done when:* the specification's §4.9 distributivity playthrough is reproduced move for move by a test; ScalaCheck generates random goals and move sequences on the JVM and the type checker accepts every resulting term; a round-trip property holds over serialization of the game tree; and the move set matches §3.2 of the specification cell by cell, including the backward/forward distinction for `∧.E` and `⟶.E`.
 
 ## Phase 3 — Goal parser
 
-Port `doc/mockup/design/parser.jsx`: both notations freely mixed, right-associative implication, negation desugaring to `A → ⊥`, positioned error messages, and `puzzleFromType` (collect the atoms of the parsed goal into the signature's type parameters). Pair it with the printer from Phase 2.
+Re-implement `doc/mockup/design/parser.jsx` in the engine module: both notations freely mixed, right-associative implication, negation desugaring to `A → ⊥`, positioned error messages, and `puzzleFromType` (collect the atoms of the parsed goal into the signature's type parameters). Pair it with the printer from Phase 2. Errors carry a position and a code, not a translated string — D14 means the message is chosen at the edge.
 
-*Depends on:* Phase 2. *Done when:* a round-trip property holds in both notations — `parse(print(t))` ≡ `t` for generated types — and the five seeded examples parse to the intended goals in both notations.
+*Depends on:* Phase 2. *Done when:* a ScalaCheck round-trip property holds in both notations — `parse(print(t))` ≡ `t` for generated types — and the five seeded examples parse to the intended goals in both notations.
 
 ## Phase 4 — Playable vertical slice
 
-The first thing anyone can actually play: Home → Setup → Play wired end to end, programmer view only, minimal styling, no search-path panel and no negative ending. Select a hole, see the legal moves, apply one, watch the term grow, reach *won*.
+The first thing anyone can actually play: Home → Setup → Play wired end to end in Laminar, programmer view only, minimal styling, no search-path panel and no negative ending. Select a hole, see the legal moves, apply one, watch the term grow, reach *won*. This is also where the engine's shape meets a real UI for the first time, so expect to revise the descriptors Phase 2 emits.
 
 *Depends on:* Phase 3. *Done when:* distributivity can be solved in the browser from a goal typed into Setup, and the win overlay appears. *Deferred:* everything below.
 
-## Phase 5 — Search tree, backtracking and dead ends
+## Phase 5 — Search tree, backtracking, dead ends and persistence
 
 The left column's *past*: the search-path tree (node rows with status dots, rule names, `Nh` / `✓ solved` / `✗ dead`, the current node marked by a red left bar), jump-to-node as the backtracking mechanism, Backtrack/Restart/Cancel with the single confirm dialog the design allows, and the **dead-end** terminal state as a toast that closes a branch rather than the game.
 
-*Depends on:* Phase 4. *Done when:* the premature `∨.I` line of §4.9 can be played into a dead end, backtracked out of, and finished the productive way — all through the UI.
+Once the tree exists it is also what D4/D5 says to save, so local persistence lands here: serialize the game on change, restore it on load, and offer to resume or start fresh. Restart and Cancel must clear it, since the design treats both as abandoning the search.
 
-## Phase 6 — The negative ending
+*Depends on:* Phase 4, and on Phase 2's serializable state. *Done when:* the premature `∨.I` line of §4.9 can be played into a dead end, backtracked out of, and finished the productive way — all through the UI; and a mid-game reload comes back with the whole explored tree and the same current node.
 
-The hardest phase, and the one the prototype punts on. §4.7 of the specification requires a **negative win**: proving the goal uninhabited by exhausting the search. Today `nodeExhausted()` handles only the *finite* case (excluded middle), because forward projections and applications are always offered — so a player can keep binding values forever and the space is never exhausted — and because there is no detection of the **non-productive cycles** of §4.10 (double-negation elimination).
+## Phase 6 — The negative ending, finite case
 
-Two things close it: **bound the move space** (suppress forward moves that re-derive something already in scope; identify states up to goal type plus scope, so re-orderings are not distinct nodes) and **detect recurrence** (a node whose goal-and-scope already occurs on its own ancestor path is non-productive and can be cut). The literature to lean on is the contraction-free sequent calculus for IPL (Dyckhoff's LJT / Hudelmaier), which is exactly a terminating decision procedure for this problem — the design's constraint is that whatever we do must remain explicable to a student as *"this line goes in circles"*, not as an opaque oracle.
+§4.7 of the specification requires a **negative win**: proving the goal uninhabited by exhausting the search. Per D13 the first release ships only the *finite* half of that — the half where the search tree can actually be exhausted, which is enough for excluded middle and for the whole family of goals with no function or product in scope to keep feeding forward moves.
 
-*Depends on:* Phase 5, and on D13. *Done when:* excluded middle is refuted by finite exhaustion and double-negation elimination by cycle detection, both ending in the "This is not a theorem!" overlay; a corpus of theorems and non-theorems is decided correctly, cross-checked against a reference IPL decision procedure; and no goal is ever *falsely* declared refuted — when the search cannot be decided, play simply continues.
+What this phase is really about is **soundness**, not reach. The prototype's `nodeExhausted()` decides "everything has been tried" by comparing a node's child count against the number of (hole, move) pairs available at it. Nothing prevents the same move being applied twice from the same node — jump back and replay, and one pair has two children — so the count can reach the threshold with pairs still untried, and the app announces "This is not a theorem!" about a goal that may well be one. Phase 2 keys children by their pair; this phase makes exhaustion read that keying, and tests it against the case that breaks the counting version.
+
+The reduced scope has one visible consequence to design for: a goal whose search space is infinite never reaches a verdict, and simply keeps playing. That has to feel like an open game rather than a bug — which is the honest presentation of an undecided search, and the seam where cycle detection will later slot in.
+
+*Depends on:* Phase 5, and on D13. *Done when:* excluded middle reaches the "This is not a theorem!" overlay by genuine exhaustion; replaying a move from an earlier node can never produce a false refutation, with a regression test for exactly that; and a corpus of small theorems and non-theorems is decided or left open correctly, cross-checked against a reference IPL decision procedure. Double-negation elimination is expected to remain open — that is deferred work, not a failure.
 
 ## Phase 7 — The logician view
 
 The second reading: the same term rendered as a Gentzen natural-deduction derivation — real fraction bars, rule names to the right of each bar, discharged assumptions bracketed with superscript labels, `let`-bindings inlined at their use sites so the derivation reads correctly. Plus the notation switch across goal, term, scope, rules table (*Construct/Destruct* → *Introduction/Elimination*) and prose, with a test that it never touches game state.
 
-*Depends on:* Phase 4 (independent of 5–6, so it can run in parallel). *Done when:* the mid-game state of screenshot `04` renders as screenshot `05` from the same node, and switching view mid-play changes nothing but notation.
+*Depends on:* Phase 4 (independent of 5–6, so it can run in parallel). *Done when:* the mid-game state of screenshot `04` renders as screenshot `05` from the same node, and switching view mid-play changes nothing but notation. Per D12 this ships in the first release, but keeping it independent means it can slip without blocking the phases around it.
 
 ## Phase 8 — The designed UI
 
-Recreate the handoff faithfully across every screen: Home (five systems, only IPL active, the rest tagged "Later"), Setup (goal field, live dual-notation echo, shape glyph, positioned errors, examples), Play (goal card, term card, hole chips with shape glyphs, resources-in-scope chips, and the rules table with its applicable / not-applicable / *no such rule* states, count badges and in-place instance unfolding), Help (six numbered steps illustrated with real UI components, plus the two-vocabulary glossary), and the Result overlay. Fixed table geometry, radius 0 on cards, no shadow at rest, motion at 80/140/200/320ms — and never an entrance animation that can leave content at `opacity: 0`.
+Recreate the handoff faithfully across every screen, in Laminar and hand-written CSS: Home (five systems, only IPL active, the rest tagged "Later"), Setup (goal field, live dual-notation echo, shape glyph, positioned errors, examples), Play (goal card, term card, hole chips with shape glyphs, resources-in-scope chips, and the rules table with its applicable / not-applicable / *no such rule* states, count badges and in-place instance unfolding), Help (six numbered steps illustrated with real UI components, plus the two-vocabulary glossary), and the Result overlay. Fixed table geometry, radius 0 on cards, no shadow at rest, motion at 80/140/200/320ms — and never an entrance animation that can leave content at `opacity: 0`. Per D16 this is built on the substitute typefaces and derived colours as shipped.
 
 *Depends on:* Phases 5–7. *Done when:* each screen matches its reference screenshot, and the rules table's geometry is provably stable across a whole game.
 
 ## Phase 9 — Release
 
-EN/ES throughout — interface, engine-generated move labels, parser errors, and `document.documentElement.lang`. Keyboard and screen-reader support, focus rings, `Esc` dismissing but never confirming. The support matrix and accessibility target from D18. Then build, deploy, and run it with students.
+Spanish and English throughout, per D14 — interface, engine-generated move labels, parser errors, and `document.documentElement.lang`. The keyboard behaviour the design specifies (`Enter` submits, `Esc` dismisses and never confirms) as part of design fidelity, not as an accessibility commitment: per D18a there is none. Then build to static files, deploy, and run it with students.
 
-*Depends on:* Phase 8. *Done when:* the app is deployed at a URL the course can use, an accessibility pass is clean, and it has survived one classroom session with the feedback written up here.
+*Depends on:* Phase 8. *Done when:* the app is deployed at a URL the course can use, it loads and plays offline, the repository is public under [LICENSE](LICENSE), and it has survived one classroom session with the feedback written up here.
 
 ## Beyond the first application
 
-- **Mobile.** The specification targets a mobile app as well as the web desktop app. The engine is already portable; what needs designing is the two-column Play screen on a phone, which the handoff does not cover.
+- **The negative ending in full** (deferred by D13). Bounding the move space — suppressing forward moves that re-derive something already in scope, and identifying states up to goal type plus scope so re-orderings are not distinct nodes — and detecting recurrence, so that a node whose goal-and-scope already occurs on its own ancestor path can be cut. The literature to lean on is the contraction-free sequent calculus for IPL (Dyckhoff's LJT / Hudelmaier), which is exactly a terminating decision procedure for this problem. The design constraint is that whatever we do must stay explicable to a student as *"this line goes in circles"*, not as an opaque oracle — which is why it is worth doing properly rather than quickly.
+- **Mobile** (deferred by D1, shape left open by D2). The engine is cross-built and framework-free, so it travels; what needs designing is the two-column Play screen on a phone, which the handoff does not cover.
 - **More systems.** The Home screen already lists the four that follow: classical propositional logic (λμ-calculus, `call/cc`), first-order intuitionistic (λΠ), first-order classical, and multiplicative linear logic. Each is a rule table plus its rendering in both viewpoints — which is the test of whether the engine was really parameterised by the calculus.
 - **Pedagogy.** Hints, per-move evaluation ("this returns you to essentially the same situation"), a graded puzzle ladder, scoring, and progression. Reserved in the layout, deliberately unbuilt.
 - **Classroom features.** Whatever D6 and D7 defer: sharing a play rather than only a goal, and any form of submission or analytics.
@@ -134,9 +134,11 @@ EN/ES throughout — interface, engine-generated move labels, parser errors, and
 
 ## Known gaps and risks
 
-- **Phase 0 is unclosed, so Phases 1–9 are provisional.** They are written against the recommended defaults; a different answer to D1, D3, D4 or D8 changes the shape of the plan, not just its schedule.
-- **Phase 6 is the schedule risk.** Everything else is a port or a re-implementation of something that already exists; the terminating decision procedure — and its presentation as a *teaching* artefact rather than an oracle — is genuine design work.
-- **The ND derivation renderer (Phase 7) is the second risk:** the prototype has one, but layout of fraction bars, discharge labels and inlined bindings is fiddly and does not survive a naive port.
-- **Brand assets are unresolved** (D16): substitute typefaces, derived colours, and logo files that should be requested rather than reused.
+- **The schedule is tight against 10 September 2026** — 19 weekdays from the plan being written, across the August holiday period, for ten phases starting from no code. The scope of D12–D15 is deliberately kept rather than pre-cut, and the date is revisited on evidence. **The checkpoint is Phase 4**, the playable vertical slice: it is the first honest measure of velocity, since reaching it exercises the build, the engine, the parser and Laminar together. If Phase 4 is not closing by the end of August, the choice is between moving the date and falling back to one of the reduced options — a plain UI over the URJC tokens with fewer components and states, or shipping the handoff's own prototype (vendored to run offline) for the first class while the Scala.js build continues behind it.
+- **The ND derivation renderer (Phase 7) is now the largest technical risk**, since D13 took the decision procedure out of the first release. The prototype has one, but the layout of fraction bars, discharge labels and inlined bindings is fiddly, and it is being rebuilt in Laminar rather than ported.
+- **Scala.js is the schedule unknown** (D8). The engine gains from it; the UI does not, and the handoff's screens are being written rather than ported. The Phase 4 vertical slice is deliberately early because it is the cheapest way to find out how far off that estimate is.
+- **Exhaustion is unsound until Phase 2 and Phase 6 land together.** The prototype can announce "This is not a theorem!" about a theorem if a move is replayed from an earlier node. Shipping the finite negative ending without the pair-keyed children fix would put a false refutation in front of students.
+- **Brand assets are accepted as substitutes** (D16), with two open risks: a rebrand pass if the *Manual de identidad visual* later contradicts the typefaces and derived colours, and institutional logos used without sign-off from the Dirección de Comunicación.
+- **Accessibility is out of scope by choice** (D18a). The only exposure is if URJC hosting turns out to carry a public-sector conformance obligation, which would be a constraint from outside the plan rather than a change of mind within it.
 - **The notebooks under [doc/](doc/) are unanalyzed** — `3.4 Isomorphisms.ipynb` and `4.1 CurryHoward.ipynb` may hold puzzle material and framings worth pulling into Help and the example list.
 - **Open question:** how far the two-player (dialogical / game-semantics) reading of §4.1 should surface in the game itself, rather than remaining a justification. It is the natural way to *explain* the negative ending to a student, which makes it relevant to Phase 6.

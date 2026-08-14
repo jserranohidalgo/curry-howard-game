@@ -10,6 +10,22 @@ The project is ultimately **not one game but many**. There are many logics — c
 
 The **near-term target is one of them**: a working application for **intuitionistic propositional logic (IPL)** ≡ the simply typed λ-calculus with products, coproducts, `Unit` and `Nothing`. The plan to get there is [Roadmap.md](Roadmap.md).
 
+## Scope of the first release
+
+Decided in Phase 0 of the workplan (2026-08-15); the stack and institutional decisions behind these are recorded in [Roadmap.md](Roadmap.md).
+
+**A desktop web application, static and offline-capable.** It deploys as static files — GitHub Pages or URJC web space — with **no backend of any kind**, and it is installable and playable with no network, so classroom wifi cannot break a session. A mobile app comes after the first release: the specification names one, but the handoff designs only the desktop layout, and the two-column Play screen needs a phone design that does not exist yet.
+
+**No accounts, no server, no collected work.** Game state is saved **locally**, and what is saved is the *whole explored game tree* — every branch, dead end and backtrack — so a student can close a laptop mid-proof and resume with the search intact. The tree is the teaching artefact, not a cache. Sharing goals or plays by link, and any form of submission, grading or analytics, are out of scope; the last of these would require a backend and a data-protection review, and would mean reopening the hosting decision.
+
+**Both viewpoints, from the start.** The programmer view and the logician view ship together. The correspondence *is* the product, and a release with only one of them teaches half the lesson.
+
+**Both languages, from the start.** Spanish and English across the interface, the engine's move labels and the parser's errors.
+
+**Goals are typed or picked.** A goal field accepting either notation, plus a short list of curated examples — including one deliberate non-theorem, so a player can meet the negative ending on purpose. No difficulty ladder or progression.
+
+**The negative ending ships only in its finite form.** Dead ends and full exploration of a *finite* search space both work, so excluded middle is refutable. Detecting the non-productive cycles that make a search infinite — the double-negation-elimination case — is deferred past the first release. The rule that survives either way: when a search cannot be decided, play simply continues. The app must never declare a goal refuted that has not actually been refuted.
+
 ## Approach
 
 **The rule tables are the single source of truth.** §3 of [the specification](spec/specification.md) defines the legal moves; the engine implements exactly those, and every screen is a rendering of a game state — the open holes, and the resources in scope at each — plus the moves legal at it. Where an existing prototype and the specification disagree, the specification wins.
@@ -41,3 +57,5 @@ So the first application is not a green-field build: it is a port, a hardening, 
 - [index.md](index.md) — the machine-navigable entry point. If you are an AI agent, start from [AGENTS.md](AGENTS.md).
 
 This repository is organized as an [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) bundle — see [AGENTS.md](AGENTS.md) for the conventions.
+
+Released under the [MIT License](LICENSE).
