@@ -15,17 +15,18 @@ This `index.md` is the machine-navigable entry point. The bundle root is the rep
 
 ## Orientation (read these first)
 
-- [Roadmap.md](/Roadmap.md) — the big picture: goal, approach, themes, known gaps. Narrative, no tasks.
+- [README.md](/README.md) — the big picture: what the game is, the goal, the approach, and where we stand.
+- [Roadmap.md](/Roadmap.md) — the workplan: phases to a first working IPL application, with dependencies and exit criteria.
 - [ToDo.md](/ToDo.md) — the simple issue tracker: what is pending and what is done.
 - [AGENTS.md](/AGENTS.md) — how to work in this repo (the OKF workflow and conventions).
-- [README.md](/README.md) — short human-facing overview.
 
 ## Knowledge base
 
 - [`spec/`](/spec/specification.md) — the game specification: goals, the two parallel rule tables (natural deduction ⟷ algebraic data types), the game mechanics, worked playthroughs, the intended family of logics/languages, and target platforms.
-- [`doc/`](/doc/) — source material and design artefacts: the Scala teaching notebooks (`3.4 Isomorphisms.ipynb`, `4.1 CurryHoward.ipynb`) that the specification draws on, and [`doc/mockup/`](/doc/mockup/) for UI mockups.
+- [`doc/`](/doc/) — source material and design artefacts: the Scala teaching notebooks (`3.4 Isomorphisms.ipynb`, `4.1 CurryHoward.ipynb`) that the specification draws on, and [`doc/mockup/`](/doc/mockup/), the design handoff for the minimal IPL version.
 
 <!-- okf:concepts -->
+- [doc/mockup.md](/doc/mockup.md) — *Design Handoff*: the URJC-branded UI/UX handoff for the minimal IPL version, its running JavaScript engine and parser prototype, what to port vs. rebuild, and the gaps found in the prototype. Describes [`/doc/mockup`](/doc/mockup).
 
 ## Bundle conventions
 

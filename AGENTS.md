@@ -8,12 +8,13 @@ Instructions for any AI agent (or human) working in this repository. Harness-neu
 
 ## At the start of a session
 
-Before doing anything else, read these two files to get oriented:
+Before doing anything else, read these files to get oriented:
 
-- **[`Roadmap.md`](Roadmap.md)** — the big picture: the goal, how we work, the themes to work through, and the known gaps. Narrative context, no specific tasks.
+- **[`README.md`](README.md)** — the big picture: what the game is, the goal, the principles we work by, and the assets we start from. No plan and no tasks.
+- **[`Roadmap.md`](Roadmap.md)** — the workplan: the phases to a first working application, each with its dependencies and exit criteria. Narrative context, no granular tasks.
 - **[`ToDo.md`](ToDo.md)** — the simple issue tracker: what is pending and what is done. This is what we are actively doing right now.
 
-As you work, keep `ToDo.md` current: add new pending items, and move finished items to **Done** with a completion date. Substantive shifts in direction belong in `Roadmap.md`.
+As you work, keep `ToDo.md` current: add new pending items, and move finished items to **Done** with a completion date. Changes to the plan — a phase resequenced, an exit criterion met, a risk realised — belong in `Roadmap.md`; shifts in the goal or the principles belong in `README.md`.
 
 ## Persist your results
 

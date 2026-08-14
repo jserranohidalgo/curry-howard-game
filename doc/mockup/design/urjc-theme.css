@@ -1,0 +1,263 @@
+/* urjc-theme.css — maps the Curry–Howard game onto the URJC design system.
+ * Loaded AFTER styles.css and screens.css: it re-points every legacy token at a
+ * URJC token, then applies the brand's structural signatures (squared corners,
+ * hairline borders, the 3px red rule, red underlined links, no blur/pattern).
+ * Source of truth: URJC design system — tokens/ copied verbatim into urjc/. */
+
+@import url("urjc/tokens/fonts.css");
+@import url("urjc/tokens/colors.css");
+@import url("urjc/tokens/typography.css");
+@import url("urjc/tokens/spacing.css");
+@import url("urjc/tokens/radius.css");
+@import url("urjc/tokens/elevation.css");
+@import url("urjc/tokens/motion.css");
+
+:root {
+  /* surfaces & ink */
+  --bg: var(--grey-50);
+  --bg-grid: transparent;          /* URJC uses no textures or patterns */
+  --panel: var(--urjc-white);
+  --panel-2: var(--grey-50);
+  --ink: var(--grey-1000);
+  --ink-2: var(--grey-800);
+  --muted: var(--grey-600);
+  --line: var(--grey-200);
+  --line-2: var(--grey-300);
+  --hole-bg: var(--urjc-white);
+
+  /* brand */
+  --accent: var(--urjc-red);
+  --accent-ink: var(--urjc-white);
+  --accent-soft: var(--urjc-red-tint);
+  --accent-line: var(--urjc-red-tint-strong);
+
+  /* type-family palette — the URJC manual defines no secondary palette, so the
+     three atoms reuse the system's derived status hues rather than inventing any */
+  --atom-P: var(--amber-600);  --atom-P-soft: var(--amber-tint);  --atom-P-line: #e3c489;
+  --atom-Q: var(--blue-600);   --atom-Q-soft: var(--blue-tint);   --atom-Q-line: #a9c3d8;
+  --atom-R: var(--green-600);  --atom-R-soft: var(--green-tint);  --atom-R-line: #a8cdb6;
+
+  --shape-ink: var(--grey-700);
+  --shape-fill: var(--grey-100);
+  --shape-line: var(--grey-300);
+
+  --ok: var(--green-600);       --ok-soft: var(--green-tint);
+  --dead: var(--urjc-red-dark); --dead-soft: var(--urjc-red-tint);
+  --warn: var(--amber-600);     --warn-soft: var(--amber-tint);
+
+  /* squared: nothing rounder than 4px except pills */
+  --r-sm: var(--radius-1);
+  --r: var(--radius-1);
+  --r-lg: var(--radius-0);
+  --r-pill: var(--radius-pill);
+
+  /* hairlines separate, not elevation */
+  --sh-1: var(--shadow-none);
+  --sh-2: var(--shadow-2);
+  --sh-3: var(--shadow-3);
+
+  --ease: var(--ease-standard);
+  --fast: var(--dur-fast);
+  --med: var(--dur-base);
+  --slow: var(--dur-slow);
+
+  --mono: var(--font-mono);
+  --sans: var(--font-sans);
+  --serif: var(--font-serif);
+  --display: var(--font-display);
+}
+
+/* Dark mode is an extension: the manual defines no dark theme, so it is built
+   from the neutral ramp's black band plus the same corporate red. */
+[data-theme="dark"] {
+  --bg: var(--grey-1000);
+  --bg-grid: transparent;
+  --panel: var(--grey-900);
+  --panel-2: #0a0a0b;
+  --ink: var(--urjc-white);
+  --ink-2: var(--grey-300);
+  --muted: var(--grey-400);
+  --line: #2a2a2d;
+  --line-2: #3a3a3f;
+  --hole-bg: var(--grey-900);
+  --accent: #ff2447;
+  --accent-ink: var(--urjc-white);
+  --accent-soft: #33070f;
+  --accent-line: #6b1020;
+  --atom-P: #e0a54e;  --atom-P-soft: #2e2415;  --atom-P-line: #5c4823;
+  --atom-Q: #6aa9d8;  --atom-Q-soft: #14212c;  --atom-Q-line: #27455c;
+  --atom-R: #5cb87f;  --atom-R-soft: #14261a;  --atom-R-line: #275238;
+  --shape-ink: var(--grey-300);
+  --shape-fill: #1d1d20;
+  --shape-line: #3a3a3f;
+  --ok: #5cb87f;      --ok-soft: #14261a;
+  --dead: #ff5a72;    --dead-soft: #33070f;
+  --warn: #e0a54e;    --warn-soft: #2e2415;
+
+  /* re-alias the URJC semantic tokens for the dark band */
+  --text-strong: var(--urjc-white);
+  --text-body: var(--grey-200);
+  --text-muted: var(--grey-400);
+  --text-faint: var(--grey-500);
+  --text-link: #ff5a72;
+  --text-link-hover: #ff8b9c;
+  --surface-page: var(--grey-1000);
+  --surface-subtle: #0a0a0b;
+  --surface-card: var(--grey-900);
+  --surface-sunken: #1d1d20;
+  --surface-brand: #d3011f;
+  --surface-brand-hover: #ff2447;
+  --surface-brand-wash: #33070f;
+  --border-subtle: #2a2a2d;
+  --border-default: #3a3a3f;
+  --border-strong: var(--grey-400);
+  --focus-ring: 0 0 0 3px rgba(255,36,71,.38);
+}
+
+/* ---------------------------------------------------------------- type roles */
+/* buttons do not inherit colour by default — without this every label goes
+   black-on-black in the dark band */
+button { color: inherit; }
+body { font-family: var(--font-sans); font-size: var(--fs-body-sm); }
+.brand-name, .hero-title, .setup-title, .step-title, .result-title, .confirm-title,
+.goal-label, .panel-eyebrow, .start-title, .move-title, .tcell-rule, .gloss-h,
+.seg button, .ghost-btn, .primary-btn, .danger-btn, .chip-name {
+  font-family: var(--font-display);
+}
+.hero-title { font: var(--fw-black) var(--fs-h1)/var(--lh-snug) var(--font-display); letter-spacing: var(--ls-display); }
+.setup-title { font: var(--type-h2); letter-spacing: var(--ls-heading); }
+.result-title, .confirm-title { font: var(--type-h3); }
+.step-title { font: var(--fw-semibold) var(--fs-h4)/1.3 var(--font-display); }
+.hero-lede { font: var(--type-lead); max-width: var(--measure-text); }
+.step-text, .result-text, .setup-lede { font-family: var(--font-sans); max-width: var(--measure-text); }
+.panel-eyebrow, .goal-label, .rt-h, .move-kind, .chip-meta, .parse-tag, .gloss-h {
+  font-family: var(--font-display); font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-overline); text-transform: uppercase;
+}
+
+/* Links are red and underlined — never blue. */
+a { color: var(--text-link); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: var(--text-link-hover); text-decoration-thickness: 2px; }
+
+/* ---------------------------------------------------------------- structure */
+/* no patterned backgrounds, no frosted glass */
+.canvas, .screen { background-image: none; }
+.topbar { backdrop-filter: none; background: var(--panel); }
+.modal-veil { backdrop-filter: none; background: var(--overlay-scrim); }
+
+/* squared cards with hairline borders and no resting elevation */
+.goal, .term-card, .result-card, .confirm-card, .start-btn, .ending, .step-art, .gloss-grid {
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+}
+.term-card { border-color: var(--border-subtle); }
+
+/* the 3px red rule — the brand's graphic signature */
+.goal { border-top: var(--rule-thick) solid var(--urjc-red); }
+.hero-title::after, .setup-title::after {
+  content: ""; display: block; width: 72px; height: var(--rule-thick);
+  background: var(--urjc-red); margin-top: var(--space-4);
+}
+.setup-title::after { margin-top: var(--space-3); }
+.panel-head .panel-eyebrow { position: relative; }
+
+/* segmented control → squared tabs with the red active underline */
+.seg { border-radius: var(--radius-0); background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 0; gap: 0; }
+.seg button { border-radius: 0; padding: 9px 16px; border-bottom: var(--rule-thick) solid transparent; font-size: var(--fs-body-sm); }
+.seg button.on, .seg.accent button.on {
+  background: transparent; color: var(--text-strong);
+  border-bottom-color: var(--urjc-red); box-shadow: none;
+}
+.seg.accent button.on { color: var(--urjc-red); }
+
+/* buttons follow the URJC Button component */
+.primary-btn {
+  border-radius: var(--radius-control); box-shadow: none;
+  height: var(--control-h-lg); padding: 0 26px; font-size: var(--fs-body);
+  font-weight: var(--fw-semibold); letter-spacing: .01em;
+}
+.primary-btn:hover:not(:disabled) { background: var(--surface-brand-hover); filter: none; transform: none; }
+.primary-btn:active:not(:disabled) { background: var(--urjc-red-darker); transform: translateY(1px); }
+.primary-btn:disabled { opacity: .42; }
+.ghost-btn {
+  border-radius: var(--radius-control); border: 1px solid var(--border-strong);
+  color: var(--text-strong); height: var(--control-h-sm); padding: 0 14px;
+  font-size: var(--fs-caption); font-weight: var(--fw-semibold);
+}
+.ghost-btn:hover { background: var(--grey-100); color: var(--text-strong); border-color: var(--border-strong); }
+.danger-btn { border-radius: var(--radius-control); background: var(--urjc-red); height: var(--control-h-sm); }
+.danger-btn:hover { background: var(--surface-brand-hover); filter: none; }
+.icon-btn { border-radius: var(--radius-control); box-shadow: none; }
+.icon-btn:hover { background: var(--grey-100); }
+.pill-btn { border-radius: var(--radius-control) !important; }
+
+/* focus is a red ring, everywhere */
+button:focus-visible, input:focus-visible, .tcell:focus-visible {
+  outline: 2px solid var(--urjc-red); outline-offset: 1px; box-shadow: var(--focus-ring);
+}
+.goal-input:focus-within { border-color: var(--urjc-red); box-shadow: var(--focus-ring); }
+
+/* holes, chips, cells — squared */
+.hole, .nd-hole, .chip, .tcell, .tcell-item, .move, .mcard, .tile, .crumb, .gnode, .ex-btn, .goal-input, .toast {
+  border-radius: var(--radius-1);
+}
+.crumb { border-radius: var(--radius-pill); }
+.hole.sel { animation: none; box-shadow: var(--focus-ring); }
+
+/* selected vs dead must not both read as "red border": selection is the red
+   focus ring, a dead hole is a struck-through grey box with red text. */
+.hole.sel, .nd-hole.sel { border-color: var(--urjc-red); background: var(--panel); box-shadow: var(--focus-ring); }
+.hole.dead, .nd-hole.dead {
+  border-style: solid; border-color: var(--grey-400);
+  background: var(--grey-100); color: var(--urjc-red-dark);
+  text-decoration: line-through; text-decoration-color: var(--grey-400);
+}
+[data-theme="dark"] .hole.dead, [data-theme="dark"] .nd-hole.dead { background: #1d1d20; border-color: #4a4a4f; }
+
+/* Rules-table availability: every cell keeps the same frame; the 3px left rule
+   carries the state — green (--status-success) for applicable, red for not.
+   Empty cells (no such rule exists) stay frameless: an absence, not a state. */
+.tcell.on, .tcell.off {
+  border: 1px solid var(--border-subtle);
+  padding-left: 9px;
+}
+.tcell.on {
+  background: var(--surface-card);
+  border-left: var(--rule-thick) solid var(--status-success);
+}
+.tcell.on .tcell-rule { color: var(--text-strong); font-weight: var(--fw-semibold); }
+.tcell.on .tcell-title { color: var(--text-body); }
+.tcell.on:hover { border-color: var(--status-success); background: var(--green-tint); transform: none; }
+.tcell.off {
+  opacity: 1; background: var(--surface-subtle);
+  border-left: var(--rule-thick) solid var(--status-error);
+  box-shadow: none;
+}
+.tcell.off .tcell-rule { color: var(--text-muted); font-weight: var(--fw-regular); }
+.tcell.off .tcell-title { color: var(--text-faint); }
+.tcell.none { opacity: 1; border: 0; background: transparent; color: var(--grey-300); }
+.tcell.stack { box-shadow: 3px 3.5px 0 -1px var(--panel), 4px 4.5px 0 0 var(--grey-300); }
+
+/* the selected row marker: a left red bar, as in the intranet sidebar */
+.gnode.on { border-left: var(--rule-thick) solid var(--urjc-red); }
+.tcell-count { border-radius: var(--radius-pill); }
+.move:hover { transform: none; border-color: var(--urjc-red); }
+.mcard:hover, .start-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--border-default); }
+/* the active system carries the brand rule; the rest are quiet, flat rows */
+.start-btn { border-left: var(--rule-thick) solid var(--urjc-red); }
+.start-btn.soon { border-left: var(--rule-thick) solid var(--border-subtle); opacity: .62; }
+.start-btn.soon:hover { opacity: .78; }
+.ex-btn:hover { border-color: var(--urjc-red); box-shadow: none; }
+
+/* result / status marks */
+.result-icon { border-radius: var(--radius-pill); }
+.result-card.lost .result-icon { background: var(--urjc-red); }
+.step-n { border-radius: var(--radius-pill); background: var(--urjc-red); color: var(--urjc-white); border-color: var(--urjc-red); }
+
+/* brand lockup in the header */
+.brand-lockup { display: block; height: 30px; width: auto; }
+.hero-tagline { font: var(--fw-semibold) var(--fs-h3)/1.34 var(--font-display); letter-spacing: var(--ls-heading); color: var(--text-body); }
+.seg.lang { border-bottom: 0; border: 1px solid var(--border-subtle); border-radius: var(--radius-control); }
+.seg.lang button { padding: 6px 11px; border-bottom: 0; font-size: var(--fs-caption); font-family: var(--font-mono); color: var(--text-muted); }
+.seg.lang button.on { background: var(--grey-100); color: var(--text-strong); }
+.brand-name { font-weight: var(--fw-bold); letter-spacing: var(--ls-heading); }
+.brand-rule { width: 1px; height: 26px; background: var(--line); }
