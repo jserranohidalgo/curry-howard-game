@@ -1,10 +1,9 @@
 package curryhoward.engine
 package term
 
-import form.{Form, Formula, Notation}
-import form.Form.{And, Or, Implies}
+import form.{Formula, Notation}
+import form.Formula.{And, Or, Implies}
 import Lambda.*
-import cats.syntax.show.*
 
 /** An independent check that a term is well-typed.
   *
@@ -28,7 +27,7 @@ object TypeCheck:
   def infer(t: Lambda, ctx: Ctx = Nil): Either[TypeError, Formula] =
 
     def fail(msg: String) = Left(TypeError(msg))
-    def show(f: Formula) = Notation.programmer[Formula].show(f)
+    def show(f: Formula) = Notation.programmer(f)
 
     t match
 
@@ -36,10 +35,10 @@ object TypeCheck:
         ctx.collectFirst { case (`v`, f) => f }
           .toRight(TypeError(s"variable $v is not in scope"))
 
-      case Unit => Right(Form[Formula].True)
+      case Unit => Right(Formula.True)
 
       case Lam((v, ty), body) =>
-        infer(body, (v, ty) :: ctx).map(ty implies _)
+        infer(body, (v, ty) :: ctx).map(ty ==> _)
 
       case App(f, arg) =>
         for
@@ -47,13 +46,13 @@ object TypeCheck:
           at <- infer(arg, ctx)
           res <- ft match
             case Implies(dom, cod) =>
-              if Form.eqv(dom, at) then Right(cod)
+              if dom == at then Right(cod)
               else fail(s"applied a ${show(ft)} to a ${show(at)}")
             case other => fail(s"${show(other)} is not a function")
         yield res
 
       case Pair(a, b) =>
-        for at <- infer(a, ctx); bt <- infer(b, ctx) yield at and bt
+        for at <- infer(a, ctx); bt <- infer(b, ctx) yield at /\ bt
 
       case Fst(inner) =>
         infer(inner, ctx).flatMap {
@@ -67,21 +66,21 @@ object TypeCheck:
           case other     => fail(s"._2 on a ${show(other)}, which is not a pair")
         }
 
-      case InL(inner, rightType) => infer(inner, ctx).map(_ or rightType)
-      case InR(inner, leftType)  => infer(inner, ctx).map(leftType or _)
+      case InL(inner, rightType) => infer(inner, ctx).map(_ \/ rightType)
+      case InR(inner, leftType)  => infer(inner, ctx).map(leftType \/ _)
 
       case Match(scrutinee, (lv, lt), onLeft, (rv, rt), onRight) =>
         infer(scrutinee, ctx).flatMap {
-          case Or(a, b) if !Form.eqv(a, lt) =>
+          case Or(a, _) if a != lt =>
             fail(s"left branch binds a ${show(lt)} but the scrutinee carries a ${show(a)}")
-          case Or(_, b) if !Form.eqv(b, rt) =>
+          case Or(_, b) if b != rt =>
             fail(s"right branch binds a ${show(rt)} but the scrutinee carries a ${show(b)}")
           case Or(_, _) =>
             for
               l <- infer(onLeft, (lv, lt) :: ctx)
               r <- infer(onRight, (rv, rt) :: ctx)
               res <-
-                if Form.eqv(l, r) then Right(l)
+                if l == r then Right(l)
                 else fail(s"branches disagree: ${show(l)} vs ${show(r)}")
             yield res
           case other => fail(s"matched on a ${show(other)}, which is not a sum")
@@ -89,21 +88,24 @@ object TypeCheck:
 
       case Let((v, ty), value, body) =>
         infer(value, ctx).flatMap { vt =>
-          if Form.eqv(vt, ty) then infer(body, (v, ty) :: ctx)
+          if vt == ty then infer(body, (v, ty) :: ctx)
           else fail(s"binding declared ${show(ty)} but the value is a ${show(vt)}")
         }
 
       case Absurd(inner, goal) =>
         infer(inner, ctx).flatMap { it =>
-          if Form.False.unapply(it) then Right(goal)
+          if it == Formula.False then Right(goal)
           else fail(s"absurd on a ${show(it)}, which is not ⊥")
         }
 
   /** Does this term inhabit this type? */
   def check(t: Lambda, expected: Formula, ctx: Ctx = Nil): Either[TypeError, Unit] =
     infer(t, ctx).flatMap { actual =>
-      if Form.eqv(actual, expected) then Right(())
+      if actual == expected then Right(())
       else
-        val show = Notation.programmer[Formula]
-        Left(TypeError(s"expected ${show.show(expected)}, got ${show.show(actual)}"))
+        Left(
+          TypeError(
+            s"expected ${Notation.programmer(expected)}, got ${Notation.programmer(actual)}"
+          )
+        )
     }

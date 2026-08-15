@@ -2,7 +2,6 @@ package curryhoward.engine
 package calculus
 
 import cats.*
-import form.Form
 import util.*
 import NJ.given
 
@@ -15,7 +14,7 @@ import NJ.given
   * rather than here.
   */
 trait SearchStrategy:
-  def apply[F: Form](space: SearchSpace[F]): LazyList[Proof[F]]
+  def apply(space: SearchSpace): LazyList[Proof]
 
 object SearchStrategy:
 
@@ -24,17 +23,17 @@ object SearchStrategy:
     * to hide.
     */
   object depthFirst extends SearchStrategy:
-    def apply[F: Form](space: SearchSpace[F]): LazyList[Proof[F]] =
-      Mu.sequenceF[LazyList, [t] =>> NJ[F, t]](space)
+    def apply(space: SearchSpace): LazyList[Proof] =
+      Mu.sequenceF[LazyList, NJ](space)
 
   /** Iterative deepening up to `maxDepth`. Finds the shallowest derivations
     * first, and — because the bound is explicit — reports nothing rather than
     * diverging when the space is infinite.
     */
   case class iterativeDeepening(maxDepth: Int = 12) extends SearchStrategy:
-    def apply[F: Form](space: SearchSpace[F]): LazyList[Proof[F]] =
-      def go(depth: Int): LazyList[Proof[F]] =
-        val found = Mu.sequenceF_Until[LazyList, [t] =>> NJ[F, t]](depth)(space)
+    def apply(space: SearchSpace): LazyList[Proof] =
+      def go(depth: Int): LazyList[Proof] =
+        val found = Mu.sequenceF_Until[LazyList, NJ](depth)(space)
         if found.nonEmpty then found
         else if depth >= maxDepth then LazyList.empty
         else go(depth + 1)

@@ -1,8 +1,7 @@
 package curryhoward.engine
 package interp
 
-import cats.syntax.show.*
-import form.{Form, Notation}
+import form.{Formula, Notation}
 import calculus.{NJ, Sequent}
 import NJ.*
 
@@ -22,19 +21,19 @@ import NJ.*
 object ToScala:
 
   /** Names in force at a point in the term. */
-  final case class Env[F](byVar: Map[Int, String], used: Set[String]):
+  final case class Env(byVar: Map[Int, String], used: Set[String]):
     def name(v: Int): String = byVar.getOrElse(v, s"v$v")
 
   object Env:
-    def empty[F]: Env[F] = Env(Map.empty, Set.empty)
+    val empty: Env = Env(Map.empty, Set.empty)
 
-  type Render[F] = Env[F] => String
+  type Render = Env => String
 
-  def apply[F: Form]: NJ.Interp[F, Render[F]] =
+  def apply: NJ.Interp[Render] =
 
-    def tpe(f: F): String = Notation.programmer[F].show(f)
+    def tpe(f: Formula): String = Notation.programmer(f)
 
-    def bind(env: Env[F], p: Sequent.Prem[F]): (Env[F], String) =
+    def bind(env: Env, p: Sequent.Prem): (Env, String) =
       val (v, ty) = p
       val chosen = fresh(base(ty), env.used)
       (Env(env.byVar + (v -> chosen), env.used + chosen), chosen)
@@ -80,28 +79,28 @@ object ToScala:
               s"case Right($rn: ${tpe(right._2)}) => ${onRight(rEnv)} }"
 
   /** An open hole, as the player sees it: its type, waiting. */
-  def hole[F: Form](h: Sequent[F]): Render[F] =
-    _ => s"… : ${Notation.programmer[F].show(h.con)}"
+  def hole(h: Sequent): Render =
+    _ => s"… : ${Notation.programmer(h.con)}"
 
   /** Render a whole derivation from the empty environment. */
-  def show[F: Form](render: Render[F]): String = render(Env.empty)
+  def show(render: Render): String = render(Env.empty)
 
   // --- Naming ---------------------------------------------------------------
 
-  private def base[F: Form](ty: F): String = ty match
-    case Form.Atom(name)  => name.toLowerCase
-    case Form.False()     => "z"
-    case Form.True()      => "u"
-    case Form.Implies(_, _) => "f"
+  private def base(ty: Formula): String = ty match
+    case Formula.Atom(name) => name.toLowerCase
+    case Formula.False      => "z"
+    case Formula.True       => "u"
+    case Formula.Implies(_, _) => "f"
     case _ =>
       val atoms = leafAtoms(ty).map(_.toLowerCase)
       if atoms.nonEmpty && atoms.sizeIs <= 3 then atoms.mkString else "x"
 
-  private def leafAtoms[F: Form](ty: F): List[String] = ty match
-    case Form.Atom(n)       => List(n)
-    case Form.And(a, b)     => leafAtoms(a) ++ leafAtoms(b)
-    case Form.Or(a, b)      => leafAtoms(a) ++ leafAtoms(b)
-    case Form.Implies(a, b) => leafAtoms(a) ++ leafAtoms(b)
+  private def leafAtoms(ty: Formula): List[String] = ty match
+    case Formula.Atom(n)       => List(n)
+    case Formula.And(a, b)     => leafAtoms(a) ++ leafAtoms(b)
+    case Formula.Or(a, b)      => leafAtoms(a) ++ leafAtoms(b)
+    case Formula.Implies(a, b) => leafAtoms(a) ++ leafAtoms(b)
     case _                  => Nil
 
   private def fresh(base: String, used: Set[String]): String =

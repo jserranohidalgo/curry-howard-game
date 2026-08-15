@@ -3,8 +3,8 @@ package calculus
 
 import cats.{Applicative, Eval, Foldable, Traverse}
 import cats.syntax.all.*
-import form.Form
-import form.Form.{And, Or, Implies}
+import form.Formula
+import form.Formula.{And, Or, Implies}
 import Sequent.Prem
 
 /** Natural deduction — **the rules of the game**.
@@ -19,30 +19,30 @@ import Sequent.Prem
   *     (`val qr: Either[Q, R] = x._2`), which is how an intermediate value — in
   *     particular a scrutinee for `∨E` — is brought into scope.
   *
-  * The type parameter `T` is what sits at the sub-holes. During play it is
+  * The type parameter is what sits at the sub-holes. During play it is
   * [[Partial]]; in a finished derivation it is another `NJ`; in an
   * interpretation it is whatever that interpretation produces. Everything the
-  * engine does to a derivation is a fold with a different `T`.
+  * engine does to a derivation is a fold with a different one.
   */
-enum NJ[F, T]:
+enum NJ[T]:
 
   // Constructors — build the goal's shape.
-  case ImpliesI(param: Prem[F], body: T)
+  case ImpliesI(param: Prem, body: T)
   case AndI(fst: T, snd: T)
-  case OrI1(arg: T, rightType: F)
-  case OrI2(arg: T, leftType: F)
+  case OrI1(arg: T, rightType: Formula)
+  case OrI2(arg: T, leftType: Formula)
   case TrueI()
 
   // Destructors — consume a resource in scope.
-  case Ax(v: Prem[F])
-  case FalseE(v: Prem[F], goal: F)
-  case AndE1Back(v: Prem[F])
-  case AndE2Back(v: Prem[F])
-  case AndE1Fwd(v: Prem[F], bound: Prem[F], body: T)
-  case AndE2Fwd(v: Prem[F], bound: Prem[F], body: T)
-  case ImpliesEBack(v: Prem[F], arg: T)
-  case ImpliesEFwd(v: Prem[F], arg: T, bound: Prem[F], body: T)
-  case OrE(v: Prem[F], left: Prem[F], onLeft: T, right: Prem[F], onRight: T)
+  case Ax(v: Prem)
+  case FalseE(v: Prem, goal: Formula)
+  case AndE1Back(v: Prem)
+  case AndE2Back(v: Prem)
+  case AndE1Fwd(v: Prem, bound: Prem, body: T)
+  case AndE2Fwd(v: Prem, bound: Prem, body: T)
+  case ImpliesEBack(v: Prem, arg: T)
+  case ImpliesEFwd(v: Prem, arg: T, bound: Prem, body: T)
+  case OrE(v: Prem, left: Prem, onLeft: T, right: Prem, onRight: T)
 
 object NJ:
 
@@ -50,7 +50,9 @@ object NJ:
     * Scala, to a natural-deduction figure, or to a stored term are all this
     * with a different carrier.
     */
-  type Interp[F, T] = NJ[F, T] => T
+  type Interp[T] = NJ[T] => T
+
+  private type Move = PartialFunction[Sequent, NJ[Sequent]]
 
   // --- The coalgebra: which moves are legal here -----------------------------
 
@@ -71,20 +73,16 @@ object NJ:
     * `val qr = x._2`, and §4.9 relies on that when it closes a hole with
     * `x._1` several moves later.
     */
-  def coalg[F: Form](seq: Sequent[F]): LazyList[NJ[F, Sequent[F]]] =
-    val here = LazyList(seq)
-    val perResource = seq.rotations
-
-    def fire(
-        rules: List[PartialFunction[Sequent[F], NJ[F, Sequent[F]]]],
-        on: LazyList[Sequent[F]]
-    ): LazyList[NJ[F, Sequent[F]]] =
+  def coalg(seq: Sequent): LazyList[NJ[Sequent]] =
+    def fire(rules: List[Move], on: LazyList[Sequent]): LazyList[NJ[Sequent]] =
       LazyList.from(rules).flatMap(rule => on.flatMap(rule.lift(_)))
 
-    fire(constructors[F], here) ++ fire(closers[F], perResource) ++ fire(openers[F], perResource)
+    fire(constructors, LazyList(seq)) ++
+      fire(closers, seq.rotations) ++
+      fire(openers, seq.rotations)
 
   /** Rules that build the goal's shape. */
-  private def constructors[F: Form]: List[PartialFunction[Sequent[F], NJ[F, Sequent[F]]]] = List(
+  private val constructors: List[Move] = List(
     { case seq @ Sequent(ant, Implies(a, b)) =>
       val x = (seq.nextVar, a)
       ImpliesI(x, Sequent(x :: ant, b))
@@ -92,20 +90,20 @@ object NJ:
     { case Sequent(ant, And(a, b)) => AndI(Sequent(ant, a), Sequent(ant, b)) },
     { case Sequent(ant, Or(a, b)) => OrI1(Sequent(ant, a), b) },
     { case Sequent(ant, Or(a, b)) => OrI2(Sequent(ant, b), a) },
-    { case Sequent(_, g) if Form.True.unapply(g) => TrueI() }
+    { case Sequent(_, Formula.True) => TrueI() }
   )
 
   /** Destructors that close the hole outright, opening nothing. */
-  private def closers[F: Form]: List[PartialFunction[Sequent[F], NJ[F, Sequent[F]]]] = List(
-    { case Sequent((v, f) :: _, g) if Form.eqv(f, g) => Ax((v, f)) },
-    { case Sequent((v, f) :: _, g) if Form.False.unapply(f) => FalseE((v, f), g) },
-    { case Sequent((v, f @ And(a, _)) :: _, g) if Form.eqv(a, g) => AndE1Back((v, f)) },
-    { case Sequent((v, f @ And(_, b)) :: _, g) if Form.eqv(b, g) => AndE2Back((v, f)) }
+  private val closers: List[Move] = List(
+    { case Sequent((v, f) :: _, g) if f == g => Ax((v, f)) },
+    { case Sequent((v, Formula.False) :: _, g) => FalseE((v, Formula.False), g) },
+    { case Sequent((v, f @ And(a, _)) :: _, g) if a == g => AndE1Back((v, f)) },
+    { case Sequent((v, f @ And(_, b)) :: _, g) if b == g => AndE2Back((v, f)) }
   )
 
   /** Destructors that open new holes, bind new resources, or both. */
-  private def openers[F: Form]: List[PartialFunction[Sequent[F], NJ[F, Sequent[F]]]] = List(
-    { case Sequent((p @ (_, Implies(a, b))) :: gamma, g) if Form.eqv(b, g) =>
+  private val openers: List[Move] = List(
+    { case Sequent((p @ (_, Implies(a, b))) :: gamma, g) if b == g =>
       ImpliesEBack(p, Sequent(p :: gamma, a))
     },
     { case seq @ Sequent((p @ (_, Or(a, b))) :: gamma, g) =>
@@ -130,7 +128,7 @@ object NJ:
   // --- Describing a move -----------------------------------------------------
 
   /** The name shown in the rules table and the search path. */
-  def label[F, T](rule: NJ[F, T]): String = rule match
+  def label[T](rule: NJ[T]): String = rule match
     case ImpliesI(_, _)          => "⟶.I"
     case AndI(_, _)              => "∧.I"
     case OrI1(_, _)              => "∨.I₁"
@@ -149,12 +147,12 @@ object NJ:
   /** Whether the move binds its result as a new resource rather than filling
     * the hole with it.
     */
-  def isForward[F, T](rule: NJ[F, T]): Boolean = rule match
+  def isForward[T](rule: NJ[T]): Boolean = rule match
     case AndE1Fwd(_, _, _) | AndE2Fwd(_, _, _) | ImpliesEFwd(_, _, _, _) => true
     case _                                                               => false
 
   /** The resource a destructor acts on, if it is one. */
-  def actsOn[F, T](rule: NJ[F, T]): Option[Prem[F]] = rule match
+  def actsOn[T](rule: NJ[T]): Option[Prem] = rule match
     case Ax(v)                   => Some(v)
     case FalseE(v, _)            => Some(v)
     case AndE1Back(v)            => Some(v)
@@ -167,7 +165,7 @@ object NJ:
     case _                       => None
 
   /** The sub-holes a move opens, in the order they are filled. */
-  def subgoals[F, T](rule: NJ[F, T]): List[T] = rule match
+  def subgoals[T](rule: NJ[T]): List[T] = rule match
     case ImpliesI(_, body)             => List(body)
     case AndI(fst, snd)                => List(fst, snd)
     case OrI1(arg, _)                  => List(arg)
@@ -186,9 +184,9 @@ object NJ:
   // --- Traversal -------------------------------------------------------------
   // Everything that folds or unfolds a derivation goes through this.
 
-  given traverse[F]: Traverse[[t] =>> NJ[F, t]] with
+  given Traverse[NJ] with
 
-    def traverse[G[_]: Applicative, A, B](fa: NJ[F, A])(f: A => G[B]): G[NJ[F, B]] =
+    def traverse[G[_]: Applicative, A, B](fa: NJ[A])(f: A => G[B]): G[NJ[B]] =
       fa match
         case ImpliesI(p, body)    => f(body).map(ImpliesI(p, _))
         case AndI(fst, snd)       => (f(fst), f(snd)).mapN(AndI(_, _))
@@ -205,8 +203,8 @@ object NJ:
         case ImpliesEFwd(v, arg, b, body) => (f(arg), f(body)).mapN(ImpliesEFwd(v, _, b, _))
         case OrE(v, l, lb, r, rb)         => (f(lb), f(rb)).mapN(OrE(v, l, _, r, _))
 
-    def foldLeft[A, B](fa: NJ[F, A], b: B)(g: (B, A) => B): B =
+    def foldLeft[A, B](fa: NJ[A], b: B)(g: (B, A) => B): B =
       subgoals(fa).foldLeft(b)(g)
 
-    def foldRight[A, B](fa: NJ[F, A], lb: Eval[B])(g: (A, Eval[B]) => Eval[B]): Eval[B] =
+    def foldRight[A, B](fa: NJ[A], lb: Eval[B])(g: (A, Eval[B]) => Eval[B]): Eval[B] =
       Foldable[List].foldRight(subgoals(fa), lb)(g)

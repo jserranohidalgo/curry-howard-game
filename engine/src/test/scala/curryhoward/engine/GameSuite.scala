@@ -1,7 +1,8 @@
 package curryhoward.engine
 
 import munit.FunSuite
-import form.{Form, Formula}
+import form.{Formula}
+import form.Formula.Syntax.atom
 import term.{Lambda, TypeCheck}
 import interp.{ToScala, ToLambda}
 import calculus.*
@@ -10,9 +11,6 @@ import calculus.Proof.interpret
 /** Playing the game, rather than searching it: positions, moves, the tree. */
 class GameSuite extends FunSuite:
 
-  import Formula.given
-  val F = Form[Formula]
-  import F.{atom, implies, and, or}
 
   val P = "P".atom
   val Q = "Q".atom
@@ -21,14 +19,14 @@ class GameSuite extends FunSuite:
   val B = "B".atom
 
   val distributivity: Formula =
-    (P and (Q or R)) implies ((P and Q) or (P and R))
+    (P /\ (Q \/ R)) ==> ((P /\ Q) \/ (P /\ R))
 
   /** Take the move with this label at the first hole whose moves offer it,
     * preferring forward or backward use as asked. Mirrors what a player does:
     * pick a cell in the rules table.
     */
-  extension (tree: GameTree[Formula])
-    def take(label: String, forward: Boolean = false): GameTree[Formula] =
+  extension (tree: GameTree)
+    def take(label: String, forward: Boolean = false): GameTree =
       val choice = tree.options.find { case (_, move) =>
         NJ.label(move) == label && NJ.isForward(move) == forward
       }
@@ -41,13 +39,13 @@ class GameSuite extends FunSuite:
           )
 
   test("the opening position has one hole, the goal, and empty scope") {
-    val g = GameTree.start[Formula](distributivity)
+    val g = GameTree.start(distributivity)
     val holes = g.current.position.holes
     assertEquals(holes.length, 1)
     val (path, hole) = holes.head
     assertEquals(path, Nil)
     assertEquals(hole.ant, Nil)
-    assert(Form.eqv(hole.con, distributivity))
+    assert(hole.con == distributivity)
     assertEquals(g.current.position.status, Status.Open)
   }
 
@@ -56,7 +54,7 @@ class GameSuite extends FunSuite:
     // a forward ∧.E₂ that brings the disjunction into scope, the case split,
     // then each branch built and closed.
     val played = GameTree
-      .start[Formula](distributivity)
+      .start(distributivity)
       .take("⟶.I")                      // move 1
       .take("∧.E₂", forward = true)     // move 2 — val qr = pqr._2
       .take("∨.E")                      // move 3 — case split
@@ -73,7 +71,7 @@ class GameSuite extends FunSuite:
     assertEquals(played.depth, 11, "the specification's playthrough is eleven moves")
 
     // The same finished position, read two ways.
-    val rendered = played.current.position.term(ToScala[Formula]).map(ToScala.show).get
+    val rendered = played.current.position.term(ToScala.apply).map(ToScala.show).get
     val term = played.current.position.term(ToLambda.apply).get
     assertEquals(
       rendered,
@@ -88,8 +86,8 @@ class GameSuite extends FunSuite:
     // An atom has no constructor and there is no resource to destruct, so the
     // hole admits no move — the narrow sense of "dead end" the interaction
     // spec §6.2 uses, and the only one the engine decides on its own.
-    val em = A or (A implies F.False)
-    val stuck = GameTree.start[Formula](em).take("∨.I₁")
+    val em = A \/ (A ==> Formula.False)
+    val stuck = GameTree.start(em).take("∨.I₁")
     assertEquals(stuck.current.position.deadHoles.length, 1)
     assertEquals(stuck.current.position.status, Status.Dead)
   }
@@ -108,12 +106,12 @@ class GameSuite extends FunSuite:
     // provable?" needs the terminating LJT oracle rather than this search — see
     // Phase 6 in /Roadmap.md.
     val premature =
-      GameTree.start[Formula](distributivity).take("⟶.I").take("∨.I₁").take("∧.I")
+      GameTree.start(distributivity).take("⟶.I").take("∨.I₁").take("∧.I")
 
     assertEquals(premature.current.position.status, Status.Open, "moves remain available")
 
     val qHole = premature.current.position.holes
-      .find((_, hole) => Form.eqv(hole.con, Q))
+      .find((_, hole) => hole.con == Q)
       .getOrElse(fail("expected an open … : Q"))
       ._2
 
@@ -125,7 +123,7 @@ class GameSuite extends FunSuite:
   }
 
   test("backtracking returns to an earlier position without losing the branch") {
-    val g = GameTree.start[Formula](distributivity).take("⟶.I")
+    val g = GameTree.start(distributivity).take("⟶.I")
     val afterLeft = g.take("∨.I₁")
     val back = afterLeft.goTo(g.currentId)
 
@@ -141,7 +139,7 @@ class GameSuite extends FunSuite:
     // move, backtracking and taking it again is navigation, not a second
     // child — which is what stops an exhaustion count from concluding
     // "everything has been tried" while options remain untried.
-    val root = GameTree.start[Formula](distributivity)
+    val root = GameTree.start(distributivity)
     val once = root.take("⟶.I")
     val backAtRoot = once.goTo(root.currentId)
     val twice = backAtRoot.take("⟶.I")
@@ -152,7 +150,7 @@ class GameSuite extends FunSuite:
   }
 
   test("options are keyed distinctly per hole and per move") {
-    val g = GameTree.start[Formula]((A and B) implies (B and A)).take("⟶.I").take("∧.I")
+    val g = GameTree.start((A /\ B) ==> (B /\ A)).take("⟶.I").take("∧.I")
     val keys = g.options.map(_._1)
     assertEquals(keys.distinct.length, keys.length, "no key collides")
     // Two open holes now, and each offers its own moves.
@@ -161,7 +159,7 @@ class GameSuite extends FunSuite:
   }
 
   test("a position part-way through has a partial term but no complete one") {
-    val g = GameTree.start[Formula](distributivity).take("⟶.I")
+    val g = GameTree.start(distributivity).take("⟶.I")
     assertEquals(g.current.position.term(ToLambda.apply), None)
     assert(!g.current.position.isComplete)
   }
@@ -169,8 +167,8 @@ class GameSuite extends FunSuite:
   test("a position with holes renders as the Play screen shows it") {
     // What `fold` buys over `term`: an unfinished position is renderable,
     // holes and all. This is the term card mid-game.
-    val g = GameTree.start[Formula](distributivity).take("⟶.I").take("∧.E₂", forward = true)
-    val shown = ToScala.show(g.current.position.fold(ToScala.hole[Formula])(ToScala[Formula]))
+    val g = GameTree.start(distributivity).take("⟶.I").take("∧.E₂", forward = true)
+    val shown = ToScala.show(g.current.position.fold(ToScala.hole)(ToScala.apply))
     assertEquals(
       shown,
       "(pqr: (P, Either[Q, R])) => val qr: Either[Q, R] = pqr._2; … : Either[(P, Q), (P, R)]"
@@ -181,16 +179,16 @@ class GameSuite extends FunSuite:
     // Play a range of goals to a win and audit each finished term with the
     // checker, which knows nothing about the rules that produced it.
     val goals = List(
-      A implies A,
-      A implies (B implies A),
-      (A and B) implies (B and A),
-      F.False implies A,
+      A ==> A,
+      A ==> (B ==> A),
+      (A /\ B) ==> (B /\ A),
+      Formula.False ==> A,
       distributivity
     )
     goals.foreach { goal =>
       val proof = SearchStrategy
         .iterativeDeepening(10)
-        .apply(SearchSpace[Formula](goal))
+        .apply(SearchSpace(goal))
         .headOption
         .getOrElse(fail(s"expected a proof of $goal"))
       val term = proof.interpret(ToLambda.apply)

@@ -21,7 +21,7 @@ import calculus.NJ.*
   */
 object ToLambda:
 
-  def apply: NJ.Interp[Formula, Lambda] =
+  def apply: NJ.Interp[Lambda] =
     case ImpliesI(param, body) => Lam(param, body)
     case AndI(fst, snd)        => Pair(fst, snd)
     case OrI1(arg, rightType)  => InL(arg, rightType)
