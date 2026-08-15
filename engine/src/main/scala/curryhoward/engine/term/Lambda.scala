@@ -10,10 +10,11 @@ import form.Formula
   * checker works on this and knows nothing about the rules, so the two agree
   * only if both are right.
   *
-  * Binders are explicit on `Match` and `Let` because the game shows them:
-  * `case Left(q) => …` and `val qr: Either[Q, R] = pqr._2` are on screen, and
-  * those names are part of the lesson. A calculus that only needed to *prove*
-  * things could substitute them away.
+  * There is no `let`. A forward move builds `(λx: A. body) value`, which is
+  * what a `let` is; `interp.ToScala` recognises that shape and prints it back
+  * as `val x: A = value; body`, which is what Scala's `val` means. Binders stay
+  * explicit on `Lam` and `Match` because the game shows them — `case Left(q) =>`
+  * is on screen, and the name is part of the lesson.
   */
 enum Lambda:
   case Var(v: Int)
@@ -32,8 +33,12 @@ enum Lambda:
       right: (Int, Formula),
       onRight: Lambda
   )
-  case Let(binder: (Int, Formula), value: Lambda, body: Lambda)
   case Absurd(t: Lambda, goal: Formula)
+
+  /** An unfilled hole, with the type it must eventually have. A position
+    * mid-game is a term with these in it.
+    */
+  case Hole(goal: Formula)
 
 object Lambda:
   given cats.Eq[Lambda] = cats.Eq.fromUniversalEquals

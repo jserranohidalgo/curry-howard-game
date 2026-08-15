@@ -6,7 +6,6 @@ import form.Formula.Syntax.atom
 import term.Lambda
 import interp.{ToScala, ToLambda}
 import calculus.*
-import calculus.Proof.interpret
 
 /** The rule set of specification §3.2, exercised. */
 class NJSuite extends FunSuite:
@@ -19,14 +18,14 @@ class NJSuite extends FunSuite:
   val B = "B".atom
   val C = "C".atom
 
-  private def prove(goal: Formula, maxDepth: Int = 8): Option[Proof] =
-    SearchStrategy.iterativeDeepening(maxDepth).apply(SearchSpace(goal)).headOption
+  private def prove(goal: Formula, maxDepth: Int = 8): Option[Partial] =
+    Search.solve(goal, maxDepth)
 
   /** The same derivation, read as Scala. */
-  private def scala(p: Proof): String = ToScala.show(p.interpret(ToScala.apply))
+  private def scala(p: Partial): String = ToScala(ToLambda.position(p))
 
   /** The same derivation, read as a stored term. */
-  private def lambda(p: Proof): Lambda = p.interpret(ToLambda.apply)
+  private def lambda(p: Partial): Lambda = ToLambda.position(p)
 
   test("identity: A => A") {
     val t = prove(A ==> A)
@@ -60,7 +59,7 @@ class NJSuite extends FunSuite:
 
   test("distributivity — the §4.9 playthrough goal") {
     val goal = (P /\ (Q \/ R)) ==> ((P /\ Q) \/ (P /\ R))
-    val t = prove(goal, maxDepth = 10)
+    val t = prove(goal, maxDepth = 12)
     assert(t.isDefined, "distributivity should be inhabited")
   }
 
@@ -100,7 +99,7 @@ class NJSuite extends FunSuite:
 
   test("the distributivity term is the §4.9 playthrough's term") {
     val goal = (P /\ (Q \/ R)) ==> ((P /\ Q) \/ (P /\ R))
-    val src = scala(prove(goal, maxDepth = 10).get)
+    val src = scala(prove(goal, maxDepth = 12).get)
     // The specification's worked playthrough, down to the forward extraction
     // (`val qr = pqr._2`) that brings the disjunction into scope before the
     // case split, and the names read off the types.
@@ -122,7 +121,7 @@ class NJSuite extends FunSuite:
 
   test("legal moves at the opening position of §4.9") {
     val goal = (P /\ (Q \/ R)) ==> ((P /\ Q) \/ (P /\ R))
-    val moves = NJ.coalg(Sequent.initial(goal)).toList
+    val moves = Move.at(Sequent.initial(goal)).toList
     // Empty scope and a function goal: the lambda is the only move available.
-    assertEquals(moves.map(NJ.label(_)), List("⟶.I"))
+    assertEquals(moves.map(_.label), List("⟶.I"))
   }

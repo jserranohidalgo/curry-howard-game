@@ -6,7 +6,6 @@ import form.Formula.Syntax.atom
 import term.{Lambda, TypeCheck}
 import interp.{ToScala, ToLambda}
 import calculus.*
-import calculus.Proof.interpret
 
 /** Playing the game, rather than searching it: positions, moves, the tree. */
 class GameSuite extends FunSuite:
@@ -28,14 +27,14 @@ class GameSuite extends FunSuite:
   extension (tree: GameTree)
     def take(label: String, forward: Boolean = false): GameTree =
       val choice = tree.options.find { case (_, move) =>
-        NJ.label(move) == label && NJ.isForward(move) == forward
+        move.label == label && move.forward == forward
       }
       choice match
         case Some((key, _)) => tree.play(key.hole, key.moveIndex)
         case None =>
           fail(
             s"no $label (forward=$forward) available; offered: " +
-              tree.options.map((_, m) => s"${NJ.label(m)}${if NJ.isForward(m) then "→" else ""}").mkString(", ")
+              tree.options.map((_, m) => s"${m.label}${if m.forward then "→" else ""}").mkString(", ")
           )
 
   test("the opening position has one hole, the goal, and empty scope") {
@@ -71,8 +70,8 @@ class GameSuite extends FunSuite:
     assertEquals(played.depth, 11, "the specification's playthrough is eleven moves")
 
     // The same finished position, read two ways.
-    val rendered = played.current.position.term(ToScala.apply).map(ToScala.show).get
-    val term = played.current.position.term(ToLambda.apply).get
+    val term = ToLambda.complete(played.current.position).get
+    val rendered = ToScala(term)
     assertEquals(
       rendered,
       "(pqr: (P, Either[Q, R])) => val qr: Either[Q, R] = pqr._2; " +
@@ -117,7 +116,7 @@ class GameSuite extends FunSuite:
 
     // What *is* cheap to check: nothing in scope is a Q, so the hole cannot be
     // closed directly — the player must go through the disjunction.
-    val labels = NJ.coalg(qHole).map(NJ.label(_)).toList
+    val labels = Move.at(qHole).map(_.label).toList
     assert(!labels.contains("Ax"), s"a Q should not be available outright: $labels")
     assert(labels.nonEmpty, "but the position is not stuck either")
   }
@@ -160,7 +159,7 @@ class GameSuite extends FunSuite:
 
   test("a position part-way through has a partial term but no complete one") {
     val g = GameTree.start(distributivity).take("⟶.I")
-    assertEquals(g.current.position.term(ToLambda.apply), None)
+    assertEquals(ToLambda.complete(g.current.position), None)
     assert(!g.current.position.isComplete)
   }
 
@@ -168,7 +167,7 @@ class GameSuite extends FunSuite:
     // What `fold` buys over `term`: an unfinished position is renderable,
     // holes and all. This is the term card mid-game.
     val g = GameTree.start(distributivity).take("⟶.I").take("∧.E₂", forward = true)
-    val shown = ToScala.show(g.current.position.fold(ToScala.hole)(ToScala.apply))
+    val shown = ToScala(ToLambda.position(g.current.position))
     assertEquals(
       shown,
       "(pqr: (P, Either[Q, R])) => val qr: Either[Q, R] = pqr._2; … : Either[(P, Q), (P, R)]"
@@ -186,12 +185,8 @@ class GameSuite extends FunSuite:
       distributivity
     )
     goals.foreach { goal =>
-      val proof = SearchStrategy
-        .iterativeDeepening(10)
-        .apply(SearchSpace(goal))
-        .headOption
-        .getOrElse(fail(s"expected a proof of $goal"))
-      val term = proof.interpret(ToLambda.apply)
+      val position = Search.solve(goal, 12).getOrElse(fail(s"expected a proof of $goal"))
+      val term = ToLambda.complete(position).get
       assertEquals(TypeCheck.check(term, goal), Right(()), s"ill-typed term for $goal")
     }
   }

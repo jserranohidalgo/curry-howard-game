@@ -2,95 +2,81 @@ package curryhoward.engine
 package interp
 
 import form.{Formula, Notation}
-import calculus.{NJ, Sequent}
-import NJ.*
+import term.Lambda
+import term.Lambda.*
 
-/** The programmer's reading: a derivation rendered as Scala source.
+/** The programmer's reading: a term rendered as Scala source.
   *
-  * The carrier is `Env => String` rather than `String`, and it has to be. A
-  * fold hands a rule its sub-terms *already interpreted*, but a binder must be
-  * named before its body is rendered — `(pqr: (P, Either[Q, R])) => …` needs
-  * `pqr` to exist for everything underneath it. Making the carrier a function
-  * of the naming environment puts the binding back in the right order.
+  * Two jobs beyond walking the tree.
   *
-  * Names are read off types, after the prototype's `freshName`: `x` for a
-  * product, `qr` for an `Either[Q, R]`, `q` for a `Q`. A player reading
+  * **Names.** The engine numbers variables; this is where they get names, read
+  * off their types after the prototype's `freshName` — `x` for a product, `qr`
+  * for an `Either[Q, R]`, `q` for a `Q`. A player reading
   * `val qr: Either[Q, R] = pqr._2` learns something that `val v3 = v1._2` does
   * not teach.
+  *
+  * **Putting the sugar back.** The calculus has no `let`: a forward move builds
+  * `(λx: A. body) value`. Rendering that literally would be honest and
+  * unreadable, so the redex is recognised and printed as `val x: A = value;
+  * body`. That is not a cheat — it is what Scala's `val` desugars to, read in
+  * the other direction.
   */
 object ToScala:
 
+  def apply(t: Lambda): String = render(t, Env.empty)
+
   /** Names in force at a point in the term. */
-  final case class Env(byVar: Map[Int, String], used: Set[String]):
+  private case class Env(byVar: Map[Int, String], used: Set[String]):
     def name(v: Int): String = byVar.getOrElse(v, s"v$v")
 
-  object Env:
+    def bind(p: (Int, Formula)): (Env, String) =
+      val (v, ty) = p
+      val chosen = fresh(base(ty), used)
+      (Env(byVar + (v -> chosen), used + chosen), chosen)
+
+  private object Env:
     val empty: Env = Env(Map.empty, Set.empty)
 
-  type Render = Env => String
+  private def tpe(f: Formula): String = Notation.programmer(f)
 
-  def apply: NJ.Interp[Render] =
+  private def render(t: Lambda, env: Env): String = t match
 
-    def tpe(f: Formula): String = Notation.programmer(f)
+    case Var(v)      => env.name(v)
+    case Unit        => "()"
+    case Hole(goal)  => s"… : ${tpe(goal)}"
 
-    def bind(env: Env, p: Sequent.Prem): (Env, String) =
-      val (v, ty) = p
-      val chosen = fresh(base(ty), env.used)
-      (Env(env.byVar + (v -> chosen), env.used + chosen), chosen)
+    // The `let` redex, sugared back. A forward move produces exactly this
+    // shape and nothing else does, so the sugar cannot misfire on a term the
+    // player built some other way.
+    case App(Lam((v, ty), body), value) =>
+      val (inner, name) = env.bind((v, ty))
+      s"val $name: ${tpe(ty)} = ${render(value, env)}; ${render(body, inner)}"
 
-    rule =>
-      env =>
-        rule match
-          case ImpliesI(param, body) =>
-            val (inner, n) = bind(env, param)
-            s"($n: ${tpe(param._2)}) => ${body(inner)}"
+    case Lam((v, ty), body) =>
+      val (inner, name) = env.bind((v, ty))
+      s"($name: ${tpe(ty)}) => ${render(body, inner)}"
 
-          case AndI(fst, snd) => s"(${fst(env)}, ${snd(env)})"
-          case OrI1(arg, _)   => s"Left(${arg(env)})"
-          case OrI2(arg, _)   => s"Right(${arg(env)})"
-          case TrueI()        => "()"
+    case App(f, arg)    => s"${render(f, env)}(${render(arg, env)})"
+    case Pair(a, b)     => s"(${render(a, env)}, ${render(b, env)})"
+    case Fst(inner)     => s"${render(inner, env)}._1"
+    case Snd(inner)     => s"${render(inner, env)}._2"
+    case InL(inner, _)  => s"Left(${render(inner, env)})"
+    case InR(inner, _)  => s"Right(${render(inner, env)})"
+    case Absurd(inner, _) => s"${render(inner, env)} match {}"
 
-          case Ax((v, _))        => env.name(v)
-          case FalseE((v, _), _) => s"${env.name(v)} match {}"
-          case AndE1Back((v, _)) => s"${env.name(v)}._1"
-          case AndE2Back((v, _)) => s"${env.name(v)}._2"
-
-          case AndE1Fwd((v, _), bound, body) =>
-            val (inner, n) = bind(env, bound)
-            s"val $n: ${tpe(bound._2)} = ${env.name(v)}._1; ${body(inner)}"
-
-          case AndE2Fwd((v, _), bound, body) =>
-            val (inner, n) = bind(env, bound)
-            s"val $n: ${tpe(bound._2)} = ${env.name(v)}._2; ${body(inner)}"
-
-          case ImpliesEBack((v, _), arg) => s"${env.name(v)}(${arg(env)})"
-
-          case ImpliesEFwd((v, _), arg, bound, body) =>
-            // The argument is built outside the binding, so it renders in the
-            // outer environment.
-            val (inner, n) = bind(env, bound)
-            s"val $n: ${tpe(bound._2)} = ${env.name(v)}(${arg(env)}); ${body(inner)}"
-
-          case OrE((v, _), left, onLeft, right, onRight) =>
-            val (lEnv, ln) = bind(env, left)
-            val (rEnv, rn) = bind(env, right)
-            s"${env.name(v)} match { " +
-              s"case Left($ln: ${tpe(left._2)}) => ${onLeft(lEnv)}; " +
-              s"case Right($rn: ${tpe(right._2)}) => ${onRight(rEnv)} }"
-
-  /** An open hole, as the player sees it: its type, waiting. */
-  def hole(h: Sequent): Render =
-    _ => s"… : ${Notation.programmer(h.con)}"
-
-  /** Render a whole derivation from the empty environment. */
-  def show(render: Render): String = render(Env.empty)
+    case Match(scrutinee, left, onLeft, right, onRight) =>
+      val (lEnv, ln) = env.bind(left)
+      val (rEnv, rn) = env.bind(right)
+      s"${render(scrutinee, env)} match { " +
+        s"case Left($ln: ${tpe(left._2)}) => ${render(onLeft, lEnv)}; " +
+        s"case Right($rn: ${tpe(right._2)}) => ${render(onRight, rEnv)} }"
 
   // --- Naming ---------------------------------------------------------------
 
   private def base(ty: Formula): String = ty match
-    case Formula.Atom(name) => name.toLowerCase
-    case Formula.False      => "z"
-    case Formula.True       => "u"
+    case Formula.Atom(name)    => name.toLowerCase
+    case Formula.False         => "z"
+    case Formula.True          => "u"
     case Formula.Implies(_, _) => "f"
     case _ =>
       val atoms = leafAtoms(ty).map(_.toLowerCase)
@@ -101,7 +87,7 @@ object ToScala:
     case Formula.And(a, b)     => leafAtoms(a) ++ leafAtoms(b)
     case Formula.Or(a, b)      => leafAtoms(a) ++ leafAtoms(b)
     case Formula.Implies(a, b) => leafAtoms(a) ++ leafAtoms(b)
-    case _                  => Nil
+    case _                     => Nil
 
   private def fresh(base: String, used: Set[String]): String =
     if !used(base) then base

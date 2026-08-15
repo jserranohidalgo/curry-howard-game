@@ -86,11 +86,7 @@ object TypeCheck:
           case other => fail(s"matched on a ${show(other)}, which is not a sum")
         }
 
-      case Let((v, ty), value, body) =>
-        infer(value, ctx).flatMap { vt =>
-          if vt == ty then infer(body, (v, ty) :: ctx)
-          else fail(s"binding declared ${show(ty)} but the value is a ${show(vt)}")
-        }
+      case Hole(goal) => fail(s"unfilled hole of type ${show(goal)}")
 
       case Absurd(inner, goal) =>
         infer(inner, ctx).flatMap { it =>

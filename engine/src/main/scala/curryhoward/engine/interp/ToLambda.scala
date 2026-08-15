@@ -4,7 +4,7 @@ package interp
 import form.Formula
 import term.Lambda
 import term.Lambda.*
-import calculus.NJ
+import calculus.{NJ, Partial}
 import calculus.NJ.*
 
 /** The stored reading: a derivation as a plain term.
@@ -14,30 +14,30 @@ import calculus.NJ.*
   * interpretation that restated each rule's typing would be checking the
   * coalgebra against itself.
   *
-  * Note how much of the rule set collapses here: a destructor is always a
-  * variable with something done to it, so `Ax`, `∧.E₁` backward and the two
-  * forward projections are all short compositions rather than new constructs.
-  * That is why the game needs no term abstraction beyond this.
+  * With the calculus minimal, this is very nearly the identity: one term node
+  * per rule. The interesting work has moved to where it belongs — `Move`
+  * decides which skeletons are offered, and `ToScala` decides how a `let`
+  * skeleton is written back out.
   */
 object ToLambda:
 
   def apply: NJ.Interp[Lambda] =
+    case Ax((v, _))            => Var(v)
+    case TrueI()               => Unit
+    case FalseE(t, goal)       => Absurd(t, goal)
     case ImpliesI(param, body) => Lam(param, body)
+    case ImpliesE(fn, arg)     => App(fn, arg)
     case AndI(fst, snd)        => Pair(fst, snd)
+    case AndE1(t)              => Fst(t)
+    case AndE2(t)              => Snd(t)
     case OrI1(arg, rightType)  => InL(arg, rightType)
     case OrI2(arg, leftType)   => InR(arg, leftType)
-    case TrueI()               => Unit
 
-    case Ax((v, _))            => Var(v)
-    case FalseE((v, _), goal)  => Absurd(Var(v), goal)
-    case AndE1Back((v, _))     => Fst(Var(v))
-    case AndE2Back((v, _))     => Snd(Var(v))
+    case OrE(scrutinee, left, onLeft, right, onRight) =>
+      Match(scrutinee, left, onLeft, right, onRight)
 
-    case AndE1Fwd((v, _), bound, body) => Let(bound, Fst(Var(v)), body)
-    case AndE2Fwd((v, _), bound, body) => Let(bound, Snd(Var(v)), body)
+  /** A position, holes and all. */
+  def position(p: Partial): Lambda = p.fold(h => Hole(h.con))(apply)
 
-    case ImpliesEBack((v, _), arg)            => App(Var(v), arg)
-    case ImpliesEFwd((v, _), arg, bound, body) => Let(bound, App(Var(v), arg), body)
-
-    case OrE((v, _), left, onLeft, right, onRight) =>
-      Match(Var(v), left, onLeft, right, onRight)
+  /** The finished term, if the position has no holes left. */
+  def complete(p: Partial): Option[Lambda] = p.term(apply)
