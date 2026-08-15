@@ -34,7 +34,8 @@ Active focus: **Phase 2 — Engine core**. Phase 1's build is up and verified; P
 - [x] Port `Sequent`, `Rule`, `Calculus`, `SearchSpace`, `Proof`, `SearchStrategy`, `Mu` as the engine skeleton (2026-08-15)
 - [x] Instantiate `Form` and `Term`: the ADT interpretations, both notations, and a Scala-source renderer with type-derived names (2026-08-15)
 - [x] Write `Calculus[NJ]` — the §3.2 rule set, backward and forward destructors included (2026-08-15)
-- [ ] Bring `Calculus[LJT]` across as the reference decision procedure for Phase 6 — now load-bearing, not a convenience: NJ search is unusable past shallow goals (see Phase 6 in [Roadmap.md](Roadmap.md))
+- [x] Bring LJT across as the reference decision procedure for Phase 6 — Dyckhoff's rules, a terminating `Decide.provable`, and a cross-check that the game never finishes a non-theorem (2026-08-15)
+- [x] Restructure into `ipl/` (Formula, Notation, Sequent), `ipl/nj/`, `ipl/ljt/` and `util/` (2026-08-15)
 - [ ] `Tree`, and a `Show` for search spaces — deferred until the search-path panel needs it
 - [x] Game tree over partial positions, children keyed by the (hole, move) pair that produced them (2026-08-15)
 - [x] Write an independent type checker `check(term, ctx)` (2026-08-15)

@@ -1,7 +1,7 @@
 package curryhoward.engine
-package term
+package ipl
+package nj
 
-import form.Formula
 
 /** A term, as data.
   *

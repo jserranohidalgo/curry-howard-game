@@ -2,7 +2,9 @@ package curryhoward.web
 
 import com.raquo.laminar.api.L.{*, given}
 import org.scalajs.dom
-import curryhoward.engine.Engine
+import curryhoward.engine.ipl.*
+import curryhoward.engine.ipl.Formula.Syntax.atom
+import curryhoward.engine.ipl.ljt.Decide
 
 /** Phase 1 shell. Renders a branded, empty page and nothing more — its job is
   * to prove that the build, the engine cross-build, Laminar and the static
@@ -40,12 +42,28 @@ object Main:
         div(
           cls := "status-list",
           display <-- detailsOpen.signal.map(if _ then "block" else "none"),
-          statusRow("engine", s"${Engine.name} ${Engine.version}"),
-          statusRow("capabilities", if Engine.capabilities.isEmpty then "—" else Engine.capabilities.mkString(", ")),
-          statusRow("ui", "Laminar"),
-          statusRow("offline", "service worker registrado")
+          // The engine, running in the browser: LJT deciding provability.
+          verdicts.map { goal =>
+            statusRow(
+              Notation.logician(goal),
+              if Decide.provable(goal) then "demostrable" else "no demostrable"
+            )
+          }
         )
       )
+    )
+
+  /** A few goals for the engine to decide, live. Intuitionistic logic parts
+    * company with classical logic on the last two.
+    */
+  private val verdicts: List[Formula] =
+    val a = "A".atom
+    val b = "B".atom
+    List(
+      a ==> a,
+      (a /\ b) ==> (b /\ a),
+      a \/ (a ==> Formula.False),          // excluded middle
+      ((a ==> b) ==> a) ==> a              // Peirce's law
     )
 
   private def statusRow(label: String, value: String): HtmlElement =

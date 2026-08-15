@@ -1,12 +1,10 @@
 package curryhoward.engine
 
 import munit.FunSuite
-import form.{Formula, Notation}
-import form.Formula.Syntax.atom
-import term.{Lambda, TypeCheck}
-import interp.{ToScala, ToLambda}
-import calculus.*
-import calculus.Proof.interpret
+import ipl.*
+import ipl.nj.*
+import Formula.Syntax.atom
+import Proof.interpret
 
 /** Playing the game, rather than searching it: positions, moves, the tree. */
 class GameSuite extends FunSuite:

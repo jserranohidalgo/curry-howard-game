@@ -1,9 +1,10 @@
 package curryhoward.engine
-package calculus
+package ipl
+package nj
 
+import NJ.given
 import cats.*
 import util.*
-import NJ.given
 
 /** How to pull complete derivations out of a search space.
   *

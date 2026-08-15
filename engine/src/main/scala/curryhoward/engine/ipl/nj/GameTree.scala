@@ -1,7 +1,7 @@
 package curryhoward.engine
-package calculus
+package ipl
+package nj
 
-import form.Formula
 import Partial.Path
 
 /** The explored part of the search space — the game's memory.

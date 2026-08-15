@@ -1,10 +1,10 @@
 package curryhoward.engine
-package calculus
+package ipl
+package nj
 
 import cats.{Applicative, Eval, Foldable, Traverse}
 import cats.syntax.all.*
-import form.Formula
-import form.Formula.{And, Or, Implies}
+import Formula.{And, Or, Implies}
 import Sequent.Prem
 
 /** Natural deduction — **the rules of the game**.

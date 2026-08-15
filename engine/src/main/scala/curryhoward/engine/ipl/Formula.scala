@@ -1,5 +1,5 @@
 package curryhoward.engine
-package form
+package ipl
 
 /** A proposition, which is to say a type — the same object read two ways.
   *

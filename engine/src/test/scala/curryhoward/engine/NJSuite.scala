@@ -1,12 +1,10 @@
 package curryhoward.engine
 
 import munit.FunSuite
-import form.{Formula, Notation}
-import form.Formula.Syntax.atom
-import term.Lambda
-import interp.{ToScala, ToLambda}
-import calculus.*
-import calculus.Proof.interpret
+import ipl.*
+import ipl.nj.*
+import Formula.Syntax.atom
+import Proof.interpret
 
 /** The rule set of specification §3.2, exercised. */
 class NJSuite extends FunSuite:

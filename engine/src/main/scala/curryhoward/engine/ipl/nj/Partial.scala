@@ -1,9 +1,9 @@
 package curryhoward.engine
-package calculus
+package ipl
+package nj
 
-import cats.syntax.all.*
-import form.Formula
 import NJ.given
+import cats.syntax.all.*
 
 /** A **game position**: a derivation under construction, with holes in it.
   *

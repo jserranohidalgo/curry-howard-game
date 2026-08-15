@@ -1,8 +1,7 @@
 package curryhoward.engine
-package interp
+package ipl
+package nj
 
-import form.{Formula, Notation}
-import calculus.{NJ, Sequent}
 import NJ.*
 
 /** The programmer's reading: a derivation rendered as Scala source.

@@ -1,5 +1,5 @@
 package curryhoward.engine
-package form
+package ipl
 
 import Formula.*
 

@@ -1,12 +1,12 @@
 package curryhoward.engine
-package calculus
+package ipl
+package nj
 
+import NJ.given
 import cats.*
 import cats.syntax.all.*
 import cats.free.Cofree
-import form.Formula
 import util.*
-import NJ.given
 
 /** The space of all plays, unfolded lazily.
   *

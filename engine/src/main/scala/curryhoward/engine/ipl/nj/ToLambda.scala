@@ -1,11 +1,9 @@
 package curryhoward.engine
-package interp
+package ipl
+package nj
 
-import form.Formula
-import term.Lambda
-import term.Lambda.*
-import calculus.NJ
-import calculus.NJ.*
+import NJ.*
+import Lambda.*
 
 /** The stored reading: a derivation as a plain term.
   *

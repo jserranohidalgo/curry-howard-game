@@ -1,8 +1,8 @@
 package curryhoward.engine
-package term
+package ipl
+package nj
 
-import form.{Formula, Notation}
-import form.Formula.{And, Or, Implies}
+import Formula.{And, Or, Implies}
 import Lambda.*
 
 /** An independent check that a term is well-typed.

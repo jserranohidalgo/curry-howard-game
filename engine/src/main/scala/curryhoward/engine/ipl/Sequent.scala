@@ -1,7 +1,6 @@
 package curryhoward.engine
-package calculus
+package ipl
 
-import form.{Formula, Notation}
 
 /** A sequent — which is to say, **a hole in the game**.
   *
