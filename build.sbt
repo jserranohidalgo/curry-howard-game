@@ -8,6 +8,7 @@ lazy val V = new {
   val munit = "1.3.5"
   val munitScalacheck = "1.3.0"
   val laminar = "17.2.1"
+  val cats = "2.13.0"
 }
 
 lazy val commonSettings = Seq(
@@ -23,6 +24,9 @@ lazy val engine = crossProject(JVMPlatform, JSPlatform)
   .settings(
     name := "curry-howard-engine",
     libraryDependencies ++= Seq(
+      // D10 amendment (D20): cats is the engine's one runtime dependency.
+      "org.typelevel" %%% "cats-core" % V.cats,
+      "org.typelevel" %%% "cats-free" % V.cats,
       "org.scalameta" %%% "munit" % V.munit % Test,
       "org.scalameta" %%% "munit-scalacheck" % V.munitScalacheck % Test
     )

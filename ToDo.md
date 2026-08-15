@@ -30,18 +30,19 @@ Active focus: **Phase 2 — Engine core**. Phase 1's build is up and verified; P
 
 **Phase 2 — Engine core**
 
-- [ ] Add cats to the engine and confirm the calculus and `initial` layers compile on Scala 3.3 LTS without `-experimental`
-- [ ] Port `Sequent`, `Rule`, `Calculus`, `SearchSpace`, `Proof`, `SearchStrategy`, `Mu`, `Tree` as the engine skeleton
-- [ ] Instantiate `Form` and `Term` for the game: the ADT interpretation plus a Scala-source printer and a proposition printer
-- [ ] Write `Calculus[NJ]` — the game's natural-deduction rule set from specification §3.2, backward and forward destructors included
+- [x] Add cats to the engine; the skeleton compiles on Scala 3.3 LTS without `-experimental` (2026-08-15)
+- [x] Port `Sequent`, `Rule`, `Calculus`, `SearchSpace`, `Proof`, `SearchStrategy`, `Mu` as the engine skeleton (2026-08-15)
+- [x] Instantiate `Form` and `Term`: the ADT interpretations, both notations, and a Scala-source renderer with type-derived names (2026-08-15)
+- [x] Write `Calculus[NJ]` — the §3.2 rule set, backward and forward destructors included (2026-08-15)
 - [ ] Bring `Calculus[LJT]` across as the reference decision procedure for Phase 6
+- [ ] `Tree`, and a `Show` for search spaces — deferred until the search-path panel needs it
 - [ ] Game tree over the lazy search space, children keyed by the (hole, move) pair that produced them
 - [ ] Keep engine state serializable — moves as data, no closures (D4/D5)
 - [ ] Structured move descriptors, no i18n inside the engine
 - [ ] Write an independent type checker `check(term, ctx)` and use it to verify every term the engine builds
 - [ ] Test: reproduce the §4.9 distributivity playthrough move for move
 - [ ] Test: ScalaCheck properties for well-typedness and for game-tree serialization round-trip
-- [ ] Re-sugar `A ⟶ ⊥` as `¬a` in the logician printer
+- [x] Re-sugar `A ⟶ ⊥` as `¬a` in the logician printer (2026-08-15)
 
 **Phase 3 — Goal parser**
 
