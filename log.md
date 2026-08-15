@@ -89,3 +89,6 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `engine/src/main/scala/curryhoward/engine/calculus/Partial.scala`
 - added `engine/src/main/scala/curryhoward/engine/term/TypeCheck.scala`
 - added `engine/src/test/scala/curryhoward/engine/GameSuite.scala`
+- added `engine/src/main/scala/curryhoward/engine/calculus/NJ.scala`
+- added `engine/src/main/scala/curryhoward/engine/interp/ToLambda.scala`
+- added `engine/src/main/scala/curryhoward/engine/interp/ToScala.scala`

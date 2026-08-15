@@ -3,11 +3,10 @@ package curryhoward.engine
 import munit.FunSuite
 import cats.syntax.show.*
 import form.{Form, Formula, Notation}
-import term.{Lambda, Rendering}
+import term.Lambda
+import interp.{ToScala, ToLambda}
 import calculus.*
-import calculus.nj.NJ
-import calculus.SearchSpace
-import calculus.Proof.program
+import calculus.Proof.interpret
 
 /** The rule set of specification §3.2, exercised. */
 class NJSuite extends FunSuite:
@@ -23,11 +22,14 @@ class NJSuite extends FunSuite:
   val B = "B".atom
   val C = "C".atom
 
-  private def prove(goal: Formula, maxDepth: Int = 8): Option[Lambda] =
-    val space = SearchSpace[Formula, NJ](goal)
-    SearchStrategy.iterativeDeepening(maxDepth).apply(space).headOption.map(_.program[Lambda])
+  private def prove(goal: Formula, maxDepth: Int = 8): Option[Proof[Formula]] =
+    SearchStrategy.iterativeDeepening(maxDepth).apply(SearchSpace[Formula](goal)).headOption
 
-  private def scala(t: Lambda): String = Rendering.scala(t)
+  /** The same derivation, read as Scala. */
+  private def scala(p: Proof[Formula]): String = ToScala.show(p.interpret(ToScala[Formula]))
+
+  /** The same derivation, read as a stored term. */
+  private def lambda(p: Proof[Formula]): Lambda = p.interpret(ToLambda.apply)
 
   test("identity: A => A") {
     val t = prove(A implies A)
@@ -123,7 +125,7 @@ class NJSuite extends FunSuite:
 
   test("legal moves at the opening position of §4.9") {
     val goal = (P and (Q or R)) implies ((P and Q) or (P and R))
-    val moves = SearchSpace.moves[Formula, NJ](Sequent.initial(goal)).toList
+    val moves = NJ.coalg(Sequent.initial(goal)).toList
     // Empty scope and a function goal: the lambda is the only move available.
     assertEquals(moves.map(NJ.label(_)), List("⟶.I"))
   }

@@ -19,23 +19,23 @@ import Partial.Path
   * theorem!" about a theorem. Keyed children make that arithmetic impossible:
   * replaying a move returns the child that already exists.
   */
-final case class GameTree[F, C[_, _]](
+final case class GameTree[F](
     goal: F,
-    nodes: Map[GameTree.NodeId, GameNode[F, C]],
+    nodes: Map[GameTree.NodeId, GameNode[F]],
     rootId: GameTree.NodeId,
     currentId: GameTree.NodeId,
     private val nextId: Int
 ):
 
-  def current: GameNode[F, C] = nodes(currentId)
+  def current: GameNode[F] = nodes(currentId)
 
-  def node(id: GameTree.NodeId): Option[GameNode[F, C]] = nodes.get(id)
+  def node(id: GameTree.NodeId): Option[GameNode[F]] = nodes.get(id)
 
   /** Backtrack — or jump forward again, since nothing was thrown away. */
-  def goTo(id: GameTree.NodeId): GameTree[F, C] =
+  def goTo(id: GameTree.NodeId): GameTree[F] =
     if nodes.contains(id) then copy(currentId = id) else this
 
-  def path(id: GameTree.NodeId): List[GameNode[F, C]] =
+  def path(id: GameTree.NodeId): List[GameNode[F]] =
     nodes.get(id) match
       case None => Nil
       case Some(n) => n.parentId.fold(List(n))(p => path(p) :+ n)
@@ -57,18 +57,18 @@ object GameTree:
     */
   final case class MoveKey(hole: Path, moveIndex: Int)
 
-  def start[F: Form, C[_, _]: Calculus](goal: F): GameTree[F, C] =
-    val root = GameNode[F, C](
+  def start[F: Form](goal: F): GameTree[F] =
+    val root = GameNode[F](
       id = NodeId(0),
       parentId = None,
       via = None,
-      position = Partial.start[F, C](goal),
+      position = Partial.start[F](goal),
       children = Map.empty,
       depth = 0
     )
     GameTree(goal, Map(NodeId(0) -> root), NodeId(0), NodeId(0), 1)
 
-  extension [F: Form, C[_, _]](tree: GameTree[F, C])(using Calculus[C])
+  extension [F: Form](tree: GameTree[F])
 
     /** Take a move at a hole of the current position.
       *
@@ -76,7 +76,7 @@ object GameTree:
       * has been played from here before, the existing child is reused rather
       * than duplicated — replaying is navigation, not exploration.
       */
-    def play(hole: Path, moveIndex: Int): GameTree[F, C] =
+    def play(hole: Path, moveIndex: Int): GameTree[F] =
       val from = tree.current
       val key = MoveKey(hole, moveIndex)
 
@@ -87,7 +87,7 @@ object GameTree:
             case None => tree // no such move; leave the tree alone
             case Some(move) =>
               val id = NodeId(tree.nextId)
-              val child = GameNode[F, C](
+              val child = GameNode[F](
                 id = id,
                 parentId = Some(from.id),
                 via = Some(key),
@@ -106,14 +106,14 @@ object GameTree:
     /** Play at the first open hole — the common case, since the UI keeps one
       * hole selected and defaults it to the first.
       */
-    def playFirst(moveIndex: Int): GameTree[F, C] =
+    def playFirst(moveIndex: Int): GameTree[F] =
       tree.current.position.holes.headOption
         .fold(tree)((path, _) => tree.play(path, moveIndex))
 
     /** Every (hole, move) pair available at the current node, whether or not it
       * has been played.
       */
-    def options: List[(MoveKey, C[F, Sequent[F]])] =
+    def options: List[(MoveKey, NJ[F, Sequent[F]])] =
       tree.current.position.holes.flatMap: (path, _) =>
         tree.current.position
           .movesAt(path)
@@ -122,12 +122,12 @@ object GameTree:
           .toList
 
 /** One explored position. */
-final case class GameNode[F, C[_, _]](
+final case class GameNode[F](
     id: GameTree.NodeId,
     parentId: Option[GameTree.NodeId],
     /** The move that led here, absent at the root. */
     via: Option[GameTree.MoveKey],
-    position: Partial[F, C],
+    position: Partial[F],
     /** Keyed by the move taken, so a pair can have at most one child. */
     children: Map[GameTree.MoveKey, GameTree.NodeId],
     depth: Int

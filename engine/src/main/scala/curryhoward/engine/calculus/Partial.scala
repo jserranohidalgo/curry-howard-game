@@ -1,20 +1,20 @@
 package curryhoward.engine
 package calculus
 
-import cats.Traverse
 import cats.syntax.all.*
 import form.Form
-import term.Term
+import NJ.given
 
 /** A **game position**: a derivation under construction, with holes in it.
   *
   * Either an open hole waiting to be filled, or a rule application whose
   * sub-derivations are themselves partial. A finished game is one with no holes
-  * left — at which point it folds to a term, and the term is the proof.
+  * left — at which point it folds to whatever an interpretation makes of it,
+  * and what it makes of it is the program the player wrote.
   */
-enum Partial[F, C[_, _]]:
+enum Partial[F]:
   case Open(hole: Sequent[F])
-  case Node(rule: C[F, Partial[F, C]])
+  case Node(rule: NJ[F, Partial[F]])
 
 object Partial:
 
@@ -28,21 +28,18 @@ object Partial:
     */
   type Path = List[Int]
 
-  def start[F: Form, C[_, _]](goal: F): Partial[F, C] =
-    Open(Sequent.initial(goal))
+  def start[F: Form](goal: F): Partial[F] = Open(Sequent.initial(goal))
 
-  extension [F: Form, C[_, _]](p: Partial[F, C])(using C: Calculus[C])
+  extension [F: Form](p: Partial[F])
 
     /** Every open hole, with its path, left to right — the order the player
       * meets them.
       */
-    def holes: List[(Path, Sequent[F])] =
-      given Traverse[[t] =>> C[F, t]] = C.traverse[F]
-      p match
-        case Open(hole) => List((Nil, hole))
-        case Node(rule) =>
-          rule.toList.zipWithIndex.flatMap: (child, i) =>
-            child.holes.map((path, hole) => (i :: path, hole))
+    def holes: List[(Path, Sequent[F])] = p match
+      case Open(hole) => List((Nil, hole))
+      case Node(rule) =>
+        NJ.subgoals(rule).zipWithIndex.flatMap: (child, i) =>
+          child.holes.map((path, hole) => (i :: path, hole))
 
     def isComplete: Boolean = holes.isEmpty
 
@@ -52,47 +49,53 @@ object Partial:
     /** Fill the hole at `path` with a move, opening its sub-holes.
       *
       * `mapWithIndex` rather than a hand-rolled counter: it is defined through
-      * `traverse`, so its indices agree with `toList`'s order, which is what
-      * `holes` reports paths against.
+      * `traverse`, so its indices agree with the order `NJ.subgoals` reports,
+      * which is what `holes` builds paths against.
       */
-    def fill(path: Path, move: C[F, Sequent[F]]): Partial[F, C] =
-      given Traverse[[t] =>> C[F, t]] = C.traverse[F]
-      path match
-        case Nil =>
-          p match
-            case Open(_) => Node(move.map(Open(_)))
-            case node    => node // already filled; nothing to do
-        case i :: rest =>
-          p match
-            case Open(_) => p
-            case Node(rule) =>
-              Node(rule.mapWithIndex((child, j) => if j == i then child.fill(rest, move) else child))
+    def fill(path: Path, move: NJ[F, Sequent[F]]): Partial[F] = path match
+      case Nil =>
+        p match
+          case Open(_) => Node(move.map(Open(_)))
+          case node    => node // already filled; nothing to do
+      case i :: rest =>
+        p match
+          case Open(_) => p
+          case Node(rule) =>
+            Node(rule.mapWithIndex((child, j) => if j == i then child.fill(rest, move) else child))
 
-    /** The term built so far, if there is nothing left to fill. */
-    def term[T: Term.Aux[F]]: Option[T] =
-      given Traverse[[t] =>> C[F, t]] = C.traverse[F]
-      val algebra = Calculus.alg[F, T, C]
-      def go(q: Partial[F, C]): Option[T] = q match
+    /** Fold the position with an interpretation, saying what an open hole
+      * means. This is how a position is rendered *while* it still has holes —
+      * the term card of the Play screen.
+      */
+    def fold[T](onHole: Sequent[F] => T)(interp: NJ.Interp[F, T]): T =
+      def go(q: Partial[F]): T = q match
+        case Open(hole) => onHole(hole)
+        case Node(rule) => interp(rule.map(go))
+      go(p)
+
+    /** The finished term, if there is nothing left to fill. */
+    def term[T](interp: NJ.Interp[F, T]): Option[T] =
+      def go(q: Partial[F]): Option[T] = q match
         case Open(_)    => None
-        case Node(rule) => rule.traverse(go).map(algebra)
+        case Node(rule) => rule.traverse(go).map(interp)
       go(p)
 
     /** The moves legal at a given hole. */
-    def movesAt(path: Path): LazyList[C[F, Sequent[F]]] =
-      holeAt(path).fold(LazyList.empty)(SearchSpace.moves[F, C])
+    def movesAt(path: Path): LazyList[NJ[F, Sequent[F]]] =
+      holeAt(path).fold(LazyList.empty)(NJ.coalg[F])
 
     /** A hole with no legal move is a dead end — the branch cannot be
       * finished, though the game is not over (§4.7).
       */
     def deadHoles: List[Path] =
-      holes.collect { case (path, hole) if SearchSpace.moves[F, C](hole).isEmpty => path }
+      holes.collect { case (path, hole) if NJ.coalg(hole).isEmpty => path }
 
     def status: Status =
       if isComplete then Status.Won
       else if deadHoles.nonEmpty then Status.Dead
       else Status.Open
 
-/** How a position stands, evaluated after every move (§4.7, §6.2 of the
+/** How a position stands, evaluated after every move (§4.7, and §6.2 of the
   * interaction spec).
   */
 enum Status:
