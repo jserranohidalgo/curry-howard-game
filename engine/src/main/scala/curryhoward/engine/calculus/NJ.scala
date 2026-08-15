@@ -41,20 +41,22 @@ enum NJ[T]:
   case ImpliesEBack(v: Prem, arg: T)
   case OrE(v: Prem, left: Prem, onLeft: T, right: Prem, onRight: T)
 
-  /** `val x: A = value; body` — the forward use of any destructor, as one rule.
+  /** `val x: A = value; body` — the cut rule, and the whole of forward
+    * reasoning in one move.
     *
-    * The value is a *nested elimination* rather than a hole, which is what
-    * keeps a forward use a single move: the player picks `∧.E₂ forward` and
-    * gets both the binding and the thing bound, exactly as §4.9 counts it.
+    * Both children are holes: state what you want in scope, then produce it.
+    * That is one move more than specification §4.9 counts for a forward
+    * extraction, and the trade is deliberate — nesting an `NJ[T]` here would
+    * make the rule set self-recursive, and in this design recursion comes from
+    * the fixpoint and nowhere else.
     *
-    * `let` is the cut rule, and cut is derivable — `(λx: A. body) value` — so
-    * this could be expanded away. It is kept primitive on purpose: expanding it
-    * would make a move a multi-rule skeleton, and a coalgebra
-    * `Sequent => LazyList[NJ[Sequent]]` can only offer moves that are one rule
-    * deep with holes for children. The coalgebra is the architecture; `let`
-    * pays for it, and the derivation is a remark rather than an implementation.
+    * `let` is derivable — `(λx: A. body) value` — but expanding it would make a
+    * move several rules deep, and a coalgebra `Sequent => LazyList[NJ[Sequent]]`
+    * can only offer moves that are one rule deep with holes for children. So it
+    * stays primitive, and the derivation is a remark rather than an
+    * implementation.
     */
-  case Let(bound: Prem, value: NJ[T], body: T)
+  case Let(bound: Prem, value: T, body: T)
 
 object NJ:
 
@@ -91,7 +93,8 @@ object NJ:
 
     fire(constructors, LazyList(seq)) ++
       fire(closers, seq.rotations) ++
-      fire(openers, seq.rotations)
+      fire(openers, seq.rotations) ++
+      lets(seq)
 
   /** Rules that build the goal's shape. */
   private val constructors: List[Move] = List(
@@ -127,19 +130,33 @@ object NJ:
       val r = (seq.nextVar + 1, b)
       OrE(p, l, Sequent(l :: p :: gamma, g), r, Sequent(r :: p :: gamma, g))
     },
-    { case seq @ Sequent((p @ (_, And(a, _))) :: gamma, g) =>
-      val bound = (seq.nextVar, a)
-      Let(bound, AndE1Back(p), Sequent(bound :: p :: gamma, g))
-    },
-    { case seq @ Sequent((p @ (_, And(_, b))) :: gamma, g) =>
-      val bound = (seq.nextVar, b)
-      Let(bound, AndE2Back(p), Sequent(bound :: p :: gamma, g))
-    },
-    { case seq @ Sequent((p @ (_, Implies(a, b))) :: gamma, g) =>
-      val bound = (seq.nextVar, b)
-      Let(bound, ImpliesEBack(p, Sequent(p :: gamma, a)), Sequent(bound :: p :: gamma, g))
-    }
   )
+
+  /** Forward reasoning: bind something new, then carry on.
+    *
+    * Generated separately from the rules above because a `let` is not attached
+    * to a resource — the value is a hole, so the same binding is the same move
+    * however its type was suggested. Hence the dedup: two resources offering an
+    * `Either[Q, R]` offer one move between them.
+    *
+    * **The candidate types are the restriction that keeps this finite.** Cut
+    * with an arbitrary `A` is the classic way to make proof search diverge, so
+    * `A` ranges only over what one elimination step could yield from something
+    * in scope: the components of a product, the codomain of an implication.
+    */
+  private def lets(seq: Sequent): LazyList[NJ[Sequent]] =
+    val Sequent(ant, goal) = seq
+    val candidates = ant.flatMap { (_, ty) =>
+      ty match
+        case And(a, b)     => List(a, b)
+        case Implies(_, b) => List(b)
+        case _             => Nil
+    }.distinct
+
+    LazyList.from(candidates).map { a =>
+      val bound = (seq.nextVar, a)
+      Let(bound, Sequent(ant, a), Sequent(bound :: ant, goal))
+    }
 
   // --- Describing a move -----------------------------------------------------
 
@@ -156,8 +173,10 @@ object NJ:
     case AndE2Back(_)            => "∧.E₂"
     case ImpliesEBack(_, _)      => "⟶.E"
     case OrE(_, _, _, _, _)      => "∨.E"
-    // A forward use is named after the elimination it binds.
-    case Let(_, value, _)        => label(value)
+    // Not an introduction or an elimination: a `let` binds a new resource, and
+    // the rules table of §3.2 has no cell for it. Phase 8 decides how it is
+    // shown.
+    case Let(_, _, _)            => "let"
 
   /** Whether the move binds its result as a new resource rather than filling
     * the hole with it.
@@ -165,6 +184,17 @@ object NJ:
   def isForward[T](rule: NJ[T]): Boolean = rule match
     case Let(_, _, _) => true
     case _            => false
+
+  /** The type a `let` brings into scope.
+    *
+    * A `let` is identified by *what it binds*, not by which resource suggested
+    * the type — the value is a hole, so two resources offering an
+    * `Either[Q, R]` offer the same move. Any presentation of the move has to
+    * show this, or the player cannot tell two lets apart.
+    */
+  def binds[T](rule: NJ[T]): Option[Formula] = rule match
+    case Let((_, ty), _, _) => Some(ty)
+    case _                  => None
 
   /** The resource a destructor acts on, if it is one. */
   def actsOn[T](rule: NJ[T]): Option[Prem] = rule match
@@ -174,7 +204,6 @@ object NJ:
     case AndE2Back(v)            => Some(v)
     case ImpliesEBack(v, _)      => Some(v)
     case OrE(v, _, _, _, _)      => Some(v)
-    case Let(_, value, _)        => actsOn(value)
     case _                       => None
 
   /** The sub-holes a move opens, in the order they are filled. */
@@ -190,9 +219,9 @@ object NJ:
     case AndE2Back(_)                  => Nil
     case ImpliesEBack(_, arg)          => List(arg)
     case OrE(_, _, onLeft, _, onRight) => List(onLeft, onRight)
-    // The value's own holes come first: `f(…)` is filled before the body that
-    // uses what it binds.
-    case Let(_, value, body)           => subgoals(value) :+ body
+    // The value first: what is bound gets produced before the body that uses
+    // it.
+    case Let(_, value, body)           => List(value, body)
 
   // --- Traversal -------------------------------------------------------------
   // Everything that folds or unfolds a derivation goes through this.
@@ -212,7 +241,7 @@ object NJ:
         case AndE2Back(v)         => Applicative[G].pure(AndE2Back(v))
         case ImpliesEBack(v, arg) => f(arg).map(ImpliesEBack(v, _))
         case OrE(v, l, lb, r, rb) => (f(lb), f(rb)).mapN(OrE(v, l, _, r, _))
-        case Let(b, value, body)  => (traverse(value)(f), f(body)).mapN(Let(b, _, _))
+        case Let(b, value, body)  => (f(value), f(body)).mapN(Let(b, _, _))
 
     def foldLeft[A, B](fa: NJ[A], b: B)(g: (B, A) => B): B =
       subgoals(fa).foldLeft(b)(g)

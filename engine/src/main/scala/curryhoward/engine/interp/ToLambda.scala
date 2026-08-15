@@ -35,8 +35,8 @@ object ToLambda:
 
     case ImpliesEBack((v, _), arg) => App(Var(v), arg)
 
-    // A forward use: bind what the nested elimination extracts.
-    case NJ.Let(bound, value, body) => Lambda.Let(bound, apply(value), body)
+    // Forward reasoning: bind a value, then carry on with it in scope.
+    case NJ.Let(bound, value, body) => Lambda.Let(bound, value, body)
 
     case OrE((v, _), left, onLeft, right, onRight) =>
       Match(Var(v), left, onLeft, right, onRight)

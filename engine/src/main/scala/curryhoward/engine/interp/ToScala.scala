@@ -61,7 +61,7 @@ object ToScala:
             // The value is built outside the binding, so it renders in the
             // outer environment; the body sees the new name.
             val (inner, n) = bind(env, bound)
-            s"val $n: ${tpe(bound._2)} = ${apply(value)(env)}; ${body(inner)}"
+            s"val $n: ${tpe(bound._2)} = ${value(env)}; ${body(inner)}"
 
           case OrE((v, _), left, onLeft, right, onRight) =>
             val (lEnv, ln) = bind(env, left)

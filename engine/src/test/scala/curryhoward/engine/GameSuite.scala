@@ -1,7 +1,7 @@
 package curryhoward.engine
 
 import munit.FunSuite
-import form.{Formula}
+import form.{Formula, Notation}
 import form.Formula.Syntax.atom
 import term.{Lambda, TypeCheck}
 import interp.{ToScala, ToLambda}
@@ -26,17 +26,24 @@ class GameSuite extends FunSuite:
     * pick a cell in the rules table.
     */
   extension (tree: GameTree)
-    def take(label: String, forward: Boolean = false): GameTree =
-      val choice = tree.options.find { case (_, move) =>
-        NJ.label(move) == label && NJ.isForward(move) == forward
-      }
-      choice match
+    def take(label: String): GameTree =
+      tree.options.find((_, move) => NJ.label(move) == label) match
         case Some((key, _)) => tree.play(key.hole, key.moveIndex)
-        case None =>
-          fail(
-            s"no $label (forward=$forward) available; offered: " +
-              tree.options.map((_, m) => s"${NJ.label(m)}${if NJ.isForward(m) then "→" else ""}").mkString(", ")
-          )
+        case None           => fail(s"no $label available; ${offered(tree)}")
+
+    /** Bind a new resource of this type. A `let` is chosen by *what it binds*,
+      * not by a rule name: the value is a hole, so two resources offering an
+      * `Either[Q, R]` offer one and the same move.
+      */
+    def takeLet(tpe: Formula): GameTree =
+      tree.options.find((_, m) => NJ.binds(m).contains(tpe)) match
+        case Some((key, _)) => tree.play(key.hole, key.moveIndex)
+        case None           => fail(s"no let binding ${Notation.programmer(tpe)}; ${offered(tree)}")
+
+  private def offered(tree: GameTree): String =
+    "offered: " + tree.options
+      .map((_, m) => NJ.binds(m).fold(NJ.label(m))(t => s"let ${Notation.programmer(t)}"))
+      .mkString(", ")
 
   test("the opening position has one hole, the goal, and empty scope") {
     val g = GameTree.start(distributivity)
@@ -56,19 +63,23 @@ class GameSuite extends FunSuite:
     val played = GameTree
       .start(distributivity)
       .take("⟶.I")                      // move 1
-      .take("∧.E₂", forward = true)     // move 2 — val qr = pqr._2
-      .take("∨.E")                      // move 3 — case split
-      .take("∨.I₁")                     // move 4 — left branch, informed choice
-      .take("∧.I")                      // move 5
-      .take("∧.E₁")                     // move 6 — backward: closes … : P
-      .take("Ax")                       // move 7
-      .take("∨.I₂")                     // move 8 — right branch
-      .take("∧.I")                      // move 9
-      .take("∧.E₁")                     // move 10
-      .take("Ax")                       // move 11
+      .takeLet(Q \/ R)                  // move 2 — state that an Either[Q, R] is wanted
+      .take("∧.E₂")                     // move 3 — and produce it: pqr._2
+      .take("∨.E")                      // move 4 — case split
+      .take("∨.I₁")                     // move 5 — left branch, informed choice
+      .take("∧.I")                      // move 6
+      .take("∧.E₁")                     // move 7 — backward: closes … : P
+      .take("Ax")                       // move 8
+      .take("∨.I₂")                     // move 9 — right branch
+      .take("∧.I")                      // move 10
+      .take("∧.E₁")                     // move 11
+      .take("Ax")                       // move 12
 
     assertEquals(played.current.position.status, Status.Won)
-    assertEquals(played.depth, 11, "the specification's playthrough is eleven moves")
+    // Twelve, not the specification's eleven: forward reasoning is a `let`, and
+    // a `let` states what it wants before producing it. The extra move is the
+    // producing.
+    assertEquals(played.depth, 12)
 
     // The same finished position, read two ways.
     val rendered = played.current.position.term(ToScala.apply).map(ToScala.show).get
@@ -167,7 +178,7 @@ class GameSuite extends FunSuite:
   test("a position with holes renders as the Play screen shows it") {
     // What `fold` buys over `term`: an unfinished position is renderable,
     // holes and all. This is the term card mid-game.
-    val g = GameTree.start(distributivity).take("⟶.I").take("∧.E₂", forward = true)
+    val g = GameTree.start(distributivity).take("⟶.I").takeLet(Q \/ R).take("∧.E₂")
     val shown = ToScala.show(g.current.position.fold(ToScala.hole)(ToScala.apply))
     assertEquals(
       shown,
