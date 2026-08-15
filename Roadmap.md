@@ -136,6 +136,34 @@ The reference decision procedure the exit criterion calls for is no longer a thi
 
 The second reading: the same term rendered as a Gentzen natural-deduction derivation — real fraction bars, rule names to the right of each bar, discharged assumptions bracketed with superscript labels, `let`-bindings inlined at their use sites so the derivation reads correctly. Plus the notation switch across goal, term, scope, rules table (*Construct/Destruct* → *Introduction/Elimination*) and prose, with a test that it never touches game state.
 
+### Open question — how a `let` appears to the logician
+
+**Decide before the renderer is written, not during.** `let` is the cut rule, and cut is not a rule of natural deduction: written out honestly it is `→I` immediately followed by `→E`, which is a *detour* — precisely the redex normalisation exists to remove. The handoff already rules on this in one clause, "`let`-bindings inline at their use sites so the derivation reads correctly", and inlining is the mathematically right answer: it yields the normal derivation, which for §4.9 is exactly the figure the specification draws, with `∧E₂` applied to `pqr` directly where the `∨E`'s major premise sits, and no `let` anywhere. That is also *why* §4.9 counts a forward extraction as one move: on the logic side it is not a step at all.
+
+Inlining has three consequences, and the third is new since `let` became a genuine cut with a hole for its value (D21):
+
+- **Duplication.** A variable used twice inlines its derivation twice. Sharing is what `let` buys the programmer, and the logician view gives it up; a heavily-shared term renders as a much larger tree.
+- **Vanishing.** A variable used zero times inlines nowhere, so the value derivation disappears.
+- **Holes have no use site.** Play `let x: Q ∨ R = ?` and the body is still a hole, so `x` is used nowhere and there is nothing to inline into: the player makes a move and the logician view does not change. That breaks the game's central promise — one move, two readings — for the one move that now costs two.
+
+**And in a sequent calculus the problem does not arise at all.** LJ's left rules *are* forward reasoning: read bottom-up, `∧L` is `val (a, b) = pqr` and `→L` is `val y = f(?)`, each one primitive inference, each one bar in the figure. Nothing to inline, nothing that vanishes. The symmetry is the real finding, and it is not that one calculus is better:
+
+| Move | In NJ | In LJ |
+|---|---|---|
+| `x._1` closing a `… : P` (backward) | `∧E₁` — one rule | `∧L` then `Ax` — two |
+| `val qr = pqr._2` (forward) | cut / `let` — a detour | `∧L` — one rule |
+
+Specification §3.2 is a genuine hybrid: introductions are right rules either way, backward eliminations are natural-deduction-native, forward eliminations are sequent-calculus-native. No single system makes all the moves primitive, so the question is not which calculus is right but **which awkwardness the student should see**. It also corrects the record on D20: the claim that the move set is natural-deduction-shaped holds for the backward moves and for the table's granularity, and does not hold for the forward ones, which are left rules wearing a `val`.
+
+The options:
+
+1. **Inline** (the handoff's call). Textbook-correct natural deduction; `let` moves are invisible or duplicated mid-game.
+2. **Draw the cut explicitly** as a lemma bar — value above, body to the right with `x` discharged. Not in the §3.1 table, but it is the standard presentation of a derived rule, and every move stays visible in both views.
+3. **An LJ-shaped figure**, where every move is one inference natively. Costs the familiar natural-deduction tree with discharged assumptions, which is what §3.1 teaches.
+4. **Both, at different times** — the cut drawn during play so the two views stay move-for-move, normalised away when the proof is finished. This has a precedent in the specification itself: §4.9's "Final step — clean up" already drops the scaffolding from the finished program, and this is the same gesture on the logic side. It also teaches something real, since the cleaned-up derivation *is* the normalised proof and the student watches normalisation happen.
+
+Leaning towards (4), undecided. Note that none of this forces an engine change: the state is `Γ ⊢ C` either way, and a completed NJ derivation can be rendered as an LJ-style figure. It is a question about what the second view *shows*.
+
 *Depends on:* Phase 4 (independent of 5–6, so it can run in parallel). *Done when:* the mid-game state of screenshot `04` renders as screenshot `05` from the same node, and switching view mid-play changes nothing but notation. Per D12 this ships in the first release, but keeping it independent means it can slip without blocking the phases around it.
 
 ## Phase 8 — The designed UI
