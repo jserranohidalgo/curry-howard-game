@@ -113,7 +113,7 @@ object GameTree:
     /** Every (hole, move) pair available at the current node, whether or not it
       * has been played.
       */
-    def options: List[(MoveKey, Move)] =
+    def options: List[(MoveKey, NJ[Sequent])] =
       tree.current.position.holes.flatMap: (path, _) =>
         tree.current.position
           .movesAt(path)

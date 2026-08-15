@@ -94,3 +94,6 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `engine/src/main/scala/curryhoward/engine/interp/ToScala.scala`
 - added `engine/src/main/scala/curryhoward/engine/calculus/Move.scala`
 - added `engine/src/main/scala/curryhoward/engine/calculus/Search.scala`
+- added `engine/src/main/scala/curryhoward/engine/calculus/SearchSpace.scala`
+- added `engine/src/main/scala/curryhoward/engine/calculus/SearchStrategy.scala`
+- added `engine/src/main/scala/curryhoward/engine/util/recursion.scala`

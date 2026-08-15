@@ -48,18 +48,14 @@ object Partial:
 
     /** Fill the hole at `path` with a move, opening its sub-holes.
       *
-      * A move installs a whole skeleton, not a single node — a forward use is
-      * three rules deep — so the holes it opens may sit several levels down.
-      * Paths take care of themselves: they are read off the structure.
-      *
       * `mapWithIndex` rather than a hand-rolled counter: it is defined through
       * `traverse`, so its indices agree with the order `NJ.subgoals` reports,
       * which is what `holes` builds paths against.
       */
-    def fill(path: Path, move: Move): Partial = path match
+    def fill(path: Path, move: NJ[Sequent]): Partial = path match
       case Nil =>
         p match
-          case Open(_) => move.skeleton
+          case Open(_) => Node(move.map(Open(_)))
           case node    => node // already filled; nothing to do
       case i :: rest =>
         p match
@@ -85,14 +81,14 @@ object Partial:
       go(p)
 
     /** The moves legal at a given hole. */
-    def movesAt(path: Path): LazyList[Move] =
-      holeAt(path).fold(LazyList.empty)(Move.at)
+    def movesAt(path: Path): LazyList[NJ[Sequent]] =
+      holeAt(path).fold(LazyList.empty)(NJ.coalg)
 
     /** A hole with no legal move is a dead end — the branch cannot be
       * finished, though the game is not over (§4.7).
       */
     def deadHoles: List[Path] =
-      holes.collect { case (path, hole) if Move.at(hole).isEmpty => path }
+      holes.collect { case (path, hole) if NJ.coalg(hole).isEmpty => path }
 
     def status: Status =
       if isComplete then Status.Won
