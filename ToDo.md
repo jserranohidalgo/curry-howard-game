@@ -60,7 +60,7 @@ Active focus: **Phase 2 — Engine core**. Phase 1's build is up and verified; P
 - [ ] Phase 5 — search-path tree, jump-to-node backtracking, dead-end toast, confirm dialog, and local persistence of the whole tree
 - [ ] Phase 6 — the negative ending, finite case: sound exhaustion, a regression test against false refutation, a decided corpus
 - [ ] Phase 7 — logician view: the ND derivation renderer and the notation switch
-- [ ] Decide, before writing that renderer, how a `let` appears to the logician — inline, explicit cut bar, LJ-shaped figure, or cut-during-play-then-normalised (open question in [Roadmap.md](Roadmap.md))
+- [ ] Decide, before writing that renderer, how a `let` appears to the logician — inline, explicit cut bar, or cut-during-play-then-normalised (open question in [Roadmap.md](Roadmap.md); the LJ-shaped option is ruled out by D22)
 - [ ] Phase 8 — recreate the designed UI across all screens against the reference screenshots
 - [ ] Phase 9 — ES/EN, static deploy, classroom trial
 
