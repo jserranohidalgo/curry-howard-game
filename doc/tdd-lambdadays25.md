@@ -54,7 +54,7 @@ Two of these solve problems the plan had already identified. **Moves as data**: 
 
 1. **D10 needs amending.** The engine was specified as depending on nothing but the standard library; this architecture needs **cats** (`Traverse`, `Monad`, `Cofree`, `Alternative`). Cats cross-builds to Scala.js, so the cost is bundle size, not portability. `scala3-staging` remains excluded.
 2. **Scala version.** The repo targets Scala 3.6 with `-experimental`; this project is pinned to 3.3 LTS. The calculus and `initial` layers should be fine on 3.3 — the `-experimental` flag is for the macro side. Confirm on first import; if the macro side is ever wanted, it belongs in a JVM-only module.
-3. **Licence.** The repo is **CC BY-SA 4.0**, a share-alike content licence; this project is MIT. Copying code across is incompatible unless the copyright holder relicenses — the same author, so a formality, but one to perform explicitly rather than assume. (Creative Commons advise against CC licences for software.)
+3. **Licence.** The repo is **CC BY-SA 4.0**, a share-alike content licence; this project is MIT. Same author on both, so nothing is blocked — recording the relicensing is a tidy-up before the repository goes public in Phase 9, not a precondition for reuse. (Creative Commons advise against CC licences for software, so the eventual fix is probably to move that repo off CC too.)
 4. **Browser performance is unmeasured.** `rotations` allocates a sequent per premise per step, and `Mu`/`Cofree`/`LazyList` folding is allocation-heavy. Interactive move generation for a single hole is a small computation; the exhaustion search is where it would show. Measure at Phase 6 rather than guess.
 
 # Citations

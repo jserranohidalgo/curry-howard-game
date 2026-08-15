@@ -30,7 +30,6 @@ Active focus: **Phase 2 — Engine core**. Phase 1's build is up and verified; P
 
 **Phase 2 — Engine core**
 
-- [ ] Relicense the reused parts of [hablapps/tdd](https://github.com/hablapps/tdd/tree/lambdadays25) from CC BY-SA 4.0 to MIT (D20) — needed before any of it lands here
 - [ ] Add cats to the engine and confirm the calculus and `initial` layers compile on Scala 3.3 LTS without `-experimental`
 - [ ] Port `Sequent`, `Rule`, `Calculus`, `SearchSpace`, `Proof`, `SearchStrategy`, `Mu`, `Tree` as the engine skeleton
 - [ ] Instantiate `Form` and `Term` for the game: the ADT interpretation plus a Scala-source printer and a proposition printer
@@ -68,6 +67,7 @@ Active focus: **Phase 2 — Engine core**. Phase 1's build is up and verified; P
 - [ ] Analyze `doc/3.4 Isomorphisms.ipynb` into a concept doc → `doc/3.4 Isomorphisms.md`
 - [ ] Write §5 "Logics and languages" of [spec/specification.md](spec/specification.md)
 - [ ] Write §6 "Platforms" of [spec/specification.md](spec/specification.md) — most of it is Phase 0's D1–D3 answers, the rest is what Phase 9 learns
+- [ ] Before the repository goes public in Phase 9: relicense the reused parts of [hablapps/tdd](https://github.com/hablapps/tdd/tree/lambdadays25) from CC BY-SA 4.0 to MIT (D20) — same author, so a formality, but it should be on the record
 - [ ] Optional (D16): request the URJC *Manual de identidad visual* and the real logo files from the Dirección de Comunicación — arriving before Phase 8 makes replacing the substitute typefaces a one-file change, afterwards a re-do
 
 ## Done
