@@ -34,13 +34,14 @@ Active focus: **Phase 2 — Engine core**. Phase 1's build is up and verified; P
 - [x] Port `Sequent`, `Rule`, `Calculus`, `SearchSpace`, `Proof`, `SearchStrategy`, `Mu` as the engine skeleton (2026-08-15)
 - [x] Instantiate `Form` and `Term`: the ADT interpretations, both notations, and a Scala-source renderer with type-derived names (2026-08-15)
 - [x] Write `Calculus[NJ]` — the §3.2 rule set, backward and forward destructors included (2026-08-15)
-- [ ] Bring `Calculus[LJT]` across as the reference decision procedure for Phase 6
+- [ ] Bring `Calculus[LJT]` across as the reference decision procedure for Phase 6 — now load-bearing, not a convenience: NJ search is unusable past shallow goals (see Phase 6 in [Roadmap.md](Roadmap.md))
 - [ ] `Tree`, and a `Show` for search spaces — deferred until the search-path panel needs it
-- [ ] Game tree over the lazy search space, children keyed by the (hole, move) pair that produced them
-- [ ] Keep engine state serializable — moves as data, no closures (D4/D5)
-- [ ] Structured move descriptors, no i18n inside the engine
-- [ ] Write an independent type checker `check(term, ctx)` and use it to verify every term the engine builds
-- [ ] Test: reproduce the §4.9 distributivity playthrough move for move
+- [x] Game tree over partial positions, children keyed by the (hole, move) pair that produced them (2026-08-15)
+- [x] Write an independent type checker `check(term, ctx)` (2026-08-15)
+- [x] Test: reproduce the §4.9 distributivity playthrough move for move (2026-08-15)
+- [ ] Keep engine state serializable — moves as data, no closures (D4/D5); hole paths and move indices are already plain data, so this is codecs plus a round-trip property
+- [ ] Structured move descriptors, no i18n inside the engine — `label` and `isForward` exist; the Play screen will want premises, bindings and the opened holes too
+- [ ] Run *every* engine-built term through the type checker in the property tests, not just the worked examples
 - [ ] Test: ScalaCheck properties for well-typedness and for game-tree serialization round-trip
 - [x] Re-sugar `A ⟶ ⊥` as `¬a` in the logician printer (2026-08-15)
 

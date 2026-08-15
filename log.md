@@ -85,3 +85,7 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `engine/src/main/scala/curryhoward/engine/term/Term.scala`
 - added `engine/src/main/scala/curryhoward/engine/util/recursion.scala`
 - added `engine/src/test/scala/curryhoward/engine/NJSuite.scala`
+- added `engine/src/main/scala/curryhoward/engine/calculus/GameTree.scala`
+- added `engine/src/main/scala/curryhoward/engine/calculus/Partial.scala`
+- added `engine/src/main/scala/curryhoward/engine/term/TypeCheck.scala`
+- added `engine/src/test/scala/curryhoward/engine/GameSuite.scala`
