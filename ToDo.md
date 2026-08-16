@@ -55,6 +55,7 @@ Active focus: **Phase 4 — the playable vertical slice**, and the end-of-August
 **Phase 4 — Playable vertical slice**
 
 - [x] A console client (`repl/`) — the same interaction with no design surface, to judge it before building it (2026-08-16)
+- [x] Contextual help in the console: `?` orientation, `??` what the moves mean, `???` hints from the oracle (2026-08-16)
 - [ ] Decide whether the Play screen keeps the REPL's "moves across all holes" or returns to the design's selected-hole model
 - [ ] Wire Home → Setup → Play end to end in Laminar, programmer view, minimal styling, win ending only
 
@@ -66,6 +67,7 @@ Active focus: **Phase 4 — the playable vertical slice**, and the end-of-August
 - [ ] Decide, before writing that renderer, how a `let` appears to the logician — inline, explicit cut bar, or cut-during-play-then-normalised (open question in [Roadmap.md](Roadmap.md); the LJ-shaped option is ruled out by D22)
 - [ ] Phase 8 — recreate the designed UI across all screens against the reference screenshots
 - [ ] Phase 9 — ES/EN, static deploy, classroom trial
+- [ ] Phase 10 — contextual help in the web UI: `?`/`??`/`???` as affordances rather than commands, and the Help screen written against them
 
 **Independent of the phases**
 

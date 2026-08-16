@@ -35,10 +35,13 @@ object Main:
       case Some(goal) => loop(play(state, goal))
 
   private def askForGoal(state: State): State =
-    print("\nType a new signature > ")
+    print("\nType a new signature (or `?`) > ")
     Option(StdIn.readLine()) match
       case None => quit()
       case Some(line) if isQuit(line) => quit()
+      case Some(line) if isHelp(line) =>
+        println(Help.goalPrompt(line.trim.length))
+        state
       case Some(line) =>
         Parser.parseGoal(line) match
           case Left(error) =>
@@ -74,6 +77,12 @@ object Main:
     val tree = state.tree.get
     line.toLowerCase match
       case "" => state
+
+      // Always available, at every prompt: what now, what do these mean, and
+      // a hint. Being stuck is the expected state for a student, not a fault.
+      case q if isHelp(q) =>
+        println(Help.position(state.goal.get, tree.current.position, state.view, q.length))
+        state
 
       case "back" =>
         tree.current.parentId match
@@ -115,7 +124,7 @@ object Main:
       View.program(position, state.view),
       View.resources(position, state.view),
       Moves.table(position, state.view),
-      "  0) back      view  tree  goal  quit\n"
+      "  0) back      ?  ??  ???      view  tree  goal  quit\n"
     ).mkString("\n")
 
   private def won(state: State, goal: Goal, position: Partial): State =
@@ -173,6 +182,10 @@ object Main:
   private def indent(s: String, by: Int): String =
     s.linesIterator.map(" " * by + _).mkString("\n")
 
+  private def isHelp(line: String): Boolean =
+    val t = line.trim
+    t.nonEmpty && t.length <= 3 && t.forall(_ == '?')
+
   private def isQuit(line: String): Boolean =
     Set("quit", "exit", ":q").contains(line.trim.toLowerCase)
 
@@ -185,12 +198,16 @@ object Main:
       |The Curry–Howard Game — console
       |Build a program and you have written a proof.
       |
-      |A number plays a move.  Words do the rest: back  view  tree  goal  quit
+      |A number plays a move.  `?` at any prompt says what to do; `??` and `???` say more.
+      |Words do the rest: back  view  tree  goal  quit
       |Examples: (A, B) => (B, A)      a ∧ b → b ∧ a      Either[A, A => Nothing]
       |""".stripMargin
 
   private val commands: String =
     """
+      |  ?       what am I looking at, and what do I do now
+      |  ??      what the moves on offer mean, in both vocabularies
+      |  ???     a hint: which moves keep the goal winnable
       |  <n>     play move n
       |  back    step to the previous position (nothing is lost; see `tree`)
       |  view    switch between the programmer's and the logician's notation
