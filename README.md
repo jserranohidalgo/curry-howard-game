@@ -50,7 +50,17 @@ So the first application is not a green-field build: it is a port, a hardening, 
 
 ## Playing it
 
-There is a console version, ahead of the web app:
+**In a browser.** The app is Scala.js, so it is built to static files and served — there is no `web/run` (sbt would hand the linked JavaScript to Node, which has no DOM):
+
+```sh
+sbt distDev                                  # or distProd, optimised
+python3 -m http.server 8080 --directory dist
+open http://localhost:8080
+```
+
+`sbt "~distDev"` rebuilds on every change; reload the page to pick it up.
+
+**In a terminal.** The console version came first and goes further — it has the search path, backtracking and contextual help:
 
 ```sh
 sbt repl/run
