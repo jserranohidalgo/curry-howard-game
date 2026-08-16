@@ -56,7 +56,7 @@ Active focus: **Phase 4 — the playable vertical slice**, and the end-of-August
 
 - [x] A console client (`repl/`) — the same interaction with no design surface, to judge it before building it (2026-08-16)
 - [x] Contextual help in the console: `?` orientation, `??` what the moves mean, `???` hints from the oracle (2026-08-16)
-- [ ] Decide whether the Play screen keeps the REPL's "moves across all holes" or returns to the design's selected-hole model
+- [x] Decided: the Play screen keeps the design's selected-hole model; the flat all-holes list is right for a REPL only (2026-08-16)
 - [ ] Wire Home → Setup → Play end to end in Laminar, programmer view, minimal styling, win ending only
 
 **Later phases** (see [Roadmap.md](Roadmap.md) for scope and exit criteria)
