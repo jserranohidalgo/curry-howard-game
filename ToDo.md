@@ -16,12 +16,15 @@ Conventions:
 
 ## To do
 
-Active focus: **Phase 5 — the search-path tree, backtracking and persistence**. Phase 4 closed on 2026-08-16, two weeks before the checkpoint expected it. Phase 1's build is up and verified; Phase 0's decisions are recorded in [Roadmap.md](Roadmap.md), and the scope they set for the first release is in [README.md](README.md).
+Active focus: **Phase 5 — the search-path tree, backtracking and persistence**.
+
+Phases 0–4 are done, plus the console client and Phase 10's contextual help, which ran ahead of the plan. The game is playable two ways: `sbt distDev` and serve `dist/` for the browser, `sbt repl/run` for the console. Phase 0's decisions are in [Roadmap.md](Roadmap.md); the scope they set is in [README.md](README.md); the engine is `engine/src/main/scala/curryhoward/engine/` (`ipl/` shared, `ipl/nj/` the game's calculus, `ipl/ljt/` the oracle).
+
+Two things to settle early, before the phases that depend on them: the release date below, and how a `let` appears to the logician (Phase 7).
 
 **Open from Phase 0**
 
 - [ ] Confirm whether the copyright holder is you or URJC, and correct the line in [LICENSE](LICENSE) if it is the university
-- [ ] Re-evaluate the 10 September date at the Phase 4 checkpoint (end of August) and reschedule or reduce scope if it is not closing
 
 **Phase 1 — Foundations** (done bar the tail)
 
@@ -58,7 +61,7 @@ Active focus: **Phase 5 — the search-path tree, backtracking and persistence**
 - [x] Contextual help in the console: `?` orientation, `??` what the moves mean, `???` hints from the oracle (2026-08-16)
 - [x] Decided: the Play screen keeps the design's selected-hole model; the flat all-holes list is right for a REPL only (2026-08-16)
 - [x] Wire Home → Setup → Play end to end in Laminar, programmer view, minimal styling, win ending only (2026-08-16)
-- [ ] Re-evaluate the 10 September date now that Phase 4 has closed
+- [ ] **Re-evaluate the 10 September date.** The Phase 4 checkpoint has arrived, two weeks early, so there is margin — but Phases 7 (the derivation renderer) and 8 (design fidelity) are the two risks and both are still ahead. Decide deliberately rather than assume the margin holds.
 
 **Later phases** (see [Roadmap.md](Roadmap.md) for scope and exit criteria)
 
