@@ -18,13 +18,73 @@ import Lambda.*
   */
 object ToScala:
 
+  /** A rendered term, in the pieces a user interface needs: the holes are
+    * separable, because they are what the player clicks.
+    */
+  enum Piece:
+    case Text(text: String)
+    case HoleAt(index: Int, goal: Formula)
+
   /** As built: every binder carries its type, the way the game shows the work. */
-  def apply(t: Lambda): String = render(t, Env.empty, ascribe = true)
+  def apply(t: Lambda): String = plain(pieces(t))
 
   /** Cleaned up: the same term with the scaffolding dropped. §4.9's final step
     * — one type annotation for the whole program, everything else inferred.
     */
-  def bare(t: Lambda): String = render(t, Env.empty, ascribe = false)
+  def bare(t: Lambda): String = plain(pieces(t, ascribe = false))
+
+  def plain(ps: List[Piece]): String = ps.map {
+    case Piece.Text(t)          => t
+    case Piece.HoleAt(_, goal)  => s"… : ${tpe(goal)}"
+  }.mkString
+
+  /** Holes are numbered left to right, which is the order `Partial.holes`
+    * reports them in — so piece `i` is hole `i`, and a click knows which hole
+    * it selected.
+    */
+  def pieces(t: Lambda, ascribe: Boolean = true): List[Piece] =
+    piecesFrom(t, Env.empty, ascribe)
+
+  private def piecesFrom(t0: Lambda, env0: Env, ascribe: Boolean): List[Piece] =
+    var next = 0
+    def go(t: Lambda, env: Env): List[Piece] =
+      def text(s: String) = List(Piece.Text(s))
+      def ann(ty: Formula) = if ascribe then s": ${tpe(ty)}" else ""
+      t match
+        case Hole(goal) =>
+          val i = next
+          next += 1
+          List(Piece.HoleAt(i, goal))
+
+        case Var(v) => text(env.name(v))
+        case Unit   => text("()")
+
+        case Lam(param, body) =>
+          val (inner, n) = env.bind(param)
+          val binder = if ascribe then s"($n: ${tpe(param._2)})" else n
+          text(s"$binder => ") ++ go(body, inner)
+
+        case App(f, arg)      => go(f, env) ++ text("(") ++ go(arg, env) ++ text(")")
+        case Pair(a, b)       => text("(") ++ go(a, env) ++ text(", ") ++ go(b, env) ++ text(")")
+        case Fst(inner)       => go(inner, env) ++ text("._1")
+        case Snd(inner)       => go(inner, env) ++ text("._2")
+        case InL(inner, _)    => text("Left(") ++ go(inner, env) ++ text(")")
+        case InR(inner, _)    => text("Right(") ++ go(inner, env) ++ text(")")
+        case Absurd(inner, _) => go(inner, env) ++ text(" match {}")
+
+        case Let(binder, value, body) =>
+          val (inner, n) = env.bind(binder)
+          text(s"val $n${ann(binder._2)} = ") ++ go(value, env) ++ text("; ") ++ go(body, inner)
+
+        case Match(scrutinee, left, onLeft, right, onRight) =>
+          val (lEnv, ln) = env.bind(left)
+          val (rEnv, rn) = env.bind(right)
+          go(scrutinee, env) ++
+            text(s" match { case Left($ln${ann(left._2)}) => ") ++ go(onLeft, lEnv) ++
+            text(s"; case Right($rn${ann(right._2)}) => ") ++ go(onRight, rEnv) ++
+            text(" }")
+
+    go(t0, env0)
 
   /** The names a hole's scope carries, in binding order.
     *
@@ -38,7 +98,7 @@ object ToScala:
 
   /** Render a fragment against names already in force. */
   def fragment(t: Lambda, known: Map[Int, String]): String =
-    render(t, Env(known, known.values.toSet), ascribe = true)
+    plain(piecesFrom(t, Env(known, known.values.toSet), ascribe = true))
 
   private case class Env(byVar: Map[Int, String], used: Set[String]):
     def name(v: Int): String = byVar.getOrElse(v, s"v$v")
@@ -52,43 +112,6 @@ object ToScala:
     val empty: Env = Env(Map.empty, Set.empty)
 
   private def tpe(f: Formula): String = Notation.programmer(f)
-
-  private def render(t: Lambda, env: Env, ascribe: Boolean): String =
-    def go(t: Lambda, env: Env): String = render(t, env, ascribe)
-    def ann(ty: Formula): String = if ascribe then s": ${tpe(ty)}" else ""
-
-    t match
-      case Var(v)     => env.name(v)
-      case Unit       => "()"
-      case Hole(goal) => s"… : ${tpe(goal)}"
-
-      case Lam(param, body) =>
-        val (inner, n) = env.bind(param)
-        // Unascribed, a single parameter needs no parentheses — `a => a`, which
-        // is what §4.9's cleaned-up program writes.
-        val binder = if ascribe then s"($n: ${tpe(param._2)})" else n
-        s"$binder => ${go(body, inner)}"
-
-      case App(f, arg)      => s"${go(f, env)}(${go(arg, env)})"
-      case Pair(a, b)       => s"(${go(a, env)}, ${go(b, env)})"
-      case Fst(inner)       => s"${go(inner, env)}._1"
-      case Snd(inner)       => s"${go(inner, env)}._2"
-      case InL(inner, _)    => s"Left(${go(inner, env)})"
-      case InR(inner, _)    => s"Right(${go(inner, env)})"
-      case Absurd(inner, _) => s"${go(inner, env)} match {}"
-
-      case Let(binder, value, body) =>
-        // The value is built outside the binding, so it renders in the outer
-        // environment; the body sees the new name.
-        val (inner, n) = env.bind(binder)
-        s"val $n${ann(binder._2)} = ${go(value, env)}; ${go(body, inner)}"
-
-      case Match(scrutinee, left, onLeft, right, onRight) =>
-        val (lEnv, ln) = env.bind(left)
-        val (rEnv, rn) = env.bind(right)
-        s"${go(scrutinee, env)} match { " +
-          s"case Left($ln${ann(left._2)}) => ${go(onLeft, lEnv)}; " +
-          s"case Right($rn${ann(right._2)}) => ${go(onRight, rEnv)} }"
 
   // --- Naming ---------------------------------------------------------------
 

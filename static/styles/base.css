@@ -131,3 +131,154 @@ button.ghost:focus-visible {
 .status-value {
   color: var(--text-strong);
 }
+
+/* --- Phase 4: the vertical slice -----------------------------------------
+   Built on the URJC tokens, but deliberately not the designed interface —
+   Phase 8 recreates that against the reference screenshots. What matters
+   here is that the interaction works. */
+
+.overline {
+  margin: var(--space-8) 0 var(--space-3);
+  font: var(--type-overline);
+  letter-spacing: var(--ls-overline);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.mono { font-family: var(--font-mono); }
+.strong { font-weight: var(--fw-semibold); color: var(--text-strong); }
+.muted { color: var(--text-muted); }
+.error { color: var(--status-error); }
+
+/* Home */
+.systems { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.start-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 15px;
+  padding: 15px 18px; text-align: left;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-left: var(--rule-thick) solid var(--urjc-red);
+  border-radius: 0; cursor: pointer;
+  transition: var(--transition-control);
+}
+.start-btn:hover { box-shadow: var(--shadow-2); transform: translateY(-2px); }
+.start-btn.inactive {
+  border-left-color: var(--border-subtle); opacity: .62; cursor: not-allowed;
+}
+.start-btn.inactive:hover { box-shadow: none; transform: none; opacity: .78; }
+.system-logic { display: block; font: var(--type-ui); color: var(--text-strong); }
+.system-language { display: block; font-size: 11.5px; color: var(--text-muted); }
+.arrow { color: var(--urjc-red); font-size: 18px; }
+.soon {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .1em;
+  border: 1px solid var(--border-default); border-radius: var(--radius-pill);
+  padding: 3px 9px; color: var(--text-muted);
+}
+
+/* Setup */
+.goal-input {
+  width: 100%; padding: 14px 12px; margin-top: var(--space-6);
+  font-family: var(--font-mono); font-size: 14.5px;
+  border: 1.5px solid var(--border-default); border-radius: var(--radius-1);
+  background: var(--surface-card);
+}
+.goal-input:focus { outline: none; border-color: var(--urjc-red); box-shadow: var(--focus-ring); }
+.feedback { min-height: 74px; padding: var(--space-3) 0; }
+.echo { display: flex; gap: var(--space-3); align-items: baseline; padding: 3px 0; }
+.echo-label { font-size: 10px; letter-spacing: .1em; color: var(--text-muted); min-width: 96px; }
+.primary {
+  width: 100%; height: var(--control-h-lg);
+  background: var(--urjc-red); color: var(--text-inverse);
+  font: var(--fw-semibold) 17px var(--font-display);
+  border: none; border-radius: var(--radius-1); cursor: pointer;
+}
+.primary:disabled { opacity: .42; cursor: not-allowed; }
+.examples { display: flex; flex-direction: column; gap: var(--space-1); }
+.example {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; text-align: left;
+  background: none; border: 1px solid transparent; cursor: pointer; font-size: 12.5px;
+}
+.example:hover { border-color: var(--border-subtle); background: var(--surface-subtle); }
+
+/* Play */
+.play { display: grid; grid-template-columns: 380px 1fr; min-height: 100vh; }
+.left {
+  padding: var(--space-6); background: var(--surface-card);
+  border-right: 1px solid var(--border-subtle);
+}
+.right { padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); }
+
+.card {
+  background: var(--surface-card); border: 1px solid var(--border-subtle);
+  border-radius: 0; padding: 18px 22px;
+}
+.goal-card { border-top: var(--rule-thick) solid var(--urjc-red); }
+.eyebrow {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: var(--space-2);
+}
+.term-card { font-size: 14px; line-height: 2; overflow-x: auto; }
+
+.hole {
+  display: inline-block; white-space: nowrap;   /* a chip never breaks mid-type */
+  border: 1.5px dashed var(--border-default); border-radius: var(--radius-1);
+  padding: 2px 7px; margin: 0 2px; cursor: pointer; background: var(--surface-card);
+}
+.hole:hover { border-color: var(--urjc-red); }
+.hole.selected { border: 1.5px solid var(--urjc-red); box-shadow: var(--focus-ring); }
+
+.hint { font-size: 13px; color: var(--text-muted); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip {
+  display: flex; gap: var(--space-2); align-items: baseline;
+  border: 1px solid var(--border-subtle); padding: 6px 10px; font-size: 12.5px;
+}
+.kind { font-size: 10px; text-transform: uppercase; color: var(--text-muted); }
+
+/* The rules table: every rule shown, whether or not it applies here. */
+.rules { display: flex; flex-direction: column; gap: 6px; }
+.rules-row { display: grid; grid-template-columns: 68px 1fr 1fr; gap: 6px; align-items: start; }
+.rules-label { font-size: 12px; color: var(--text-muted); padding-top: 8px; }
+.rules-cell { display: flex; flex-direction: column; gap: 4px; }
+
+.move {
+  display: flex; flex-direction: column; gap: 2px; text-align: left;
+  padding: 6px 8px; cursor: pointer;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-left: var(--rule-thick) solid var(--green-600);
+}
+.move:hover { border-color: var(--green-600); background: var(--green-tint); }
+.move-name { font-size: 12px; color: var(--text-strong); font-weight: var(--fw-semibold); }
+.move-effect { font-size: 10.5px; color: var(--text-muted); }
+
+.inapplicable, .absent {
+  min-height: 34px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--grey-300);
+  border: 1px solid var(--border-subtle); background: var(--surface-subtle);
+  border-left: var(--rule-thick) solid var(--urjc-red-darker);
+}
+.absent { border: none; background: none; color: var(--grey-300); }
+
+.footer {
+  margin-top: var(--space-6); padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle); display: flex; gap: var(--space-2);
+}
+.back { margin-bottom: var(--space-6); }
+
+/* Result */
+.scrim {
+  position: fixed; inset: 0; background: var(--overlay-scrim);
+  display: flex; align-items: center; justify-content: center; padding: var(--space-6);
+}
+.result { max-width: 560px; box-shadow: var(--shadow-3); padding: 30px; }
+.result pre {
+  white-space: pre-wrap; font-size: 12.5px; background: var(--surface-subtle);
+  padding: 12px; margin: 0 0 var(--space-4);
+}
+.tick {
+  width: 46px; height: 46px; border-radius: 999px; background: var(--green-tint);
+  color: var(--green-600); display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: var(--space-4);
+}

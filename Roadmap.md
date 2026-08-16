@@ -110,7 +110,15 @@ Re-implement `doc/mockup/design/parser.jsx` in the engine module: both notations
 
 *Depends on:* Phase 2. *Done when:* a ScalaCheck round-trip property holds in both notations — `parse(print(t))` ≡ `t` for generated types — and the five seeded examples parse to the intended goals in both notations.
 
-## Phase 4 — Playable vertical slice
+## Phase 4 — Playable vertical slice (done 2026-08-16)
+
+**Built:** Home → Setup → Play → Result, in Laminar on the same engine the console plays. Setup echoes the goal in *both* notations as it is typed, which is the screen's whole point. Play keeps **one selected hole** (the decision above): clicking a hole chip in the term selects it, and the rules table and the resources panel both follow the selection. The table is drawn whole, applicable moves actionable with a green rule, inapplicable de-emphasised with a red one, and absences shown as `—`. Winning shows the term as built and cleaned up. Styling is deliberately modest — Phase 8 recreates the design against the reference screenshots.
+
+Nothing in the model is stored twice: holes, moves, term and status are all functions of the position, recomputed per render, so the view is a rendering of the engine rather than a copy of it — which is the handoff's own "derived per render" model.
+
+Verified by driving a real browser over the DevTools protocol rather than by eye: the opening `⟶.I`, the forward `let`, two holes appearing, selecting the second and watching the moves panel follow it, and a game played to the Result overlay. That found one bug a screenshot would not have — move effects rendering `v1 match` instead of `qr match`, because they were built outside the selected hole's naming environment.
+
+The original plan for the phase:
 
 **A console client came first** (2026-08-16, `repl/`). Before committing an interaction to Laminar it is worth playing it somewhere with no design surface at all, and a REPL is that place: four panels a turn — goal, program, resources, moves — with the §3.2 table drawn whole, holes lettered, moves numbered across every hole, and `back`/`view`/`tree`/`goal` for the rest. It settled three things cheaply. Moves offered across all holes at once removes the selection step entirely — pleasant in a console, and **not** adopted for the UI (see below). A `let` needs its bound type shown or two of them are indistinguishable, which is the presentation question of D21 arriving in practice. And `view` can only re-notate *formulae* until Phase 7 exists, which makes concrete how much of the correspondence the second view is carrying.
 

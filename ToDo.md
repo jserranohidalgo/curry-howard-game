@@ -16,7 +16,7 @@ Conventions:
 
 ## To do
 
-Active focus: **Phase 4 — the playable vertical slice**, and the end-of-August checkpoint that goes with it. Phase 1's build is up and verified; Phase 0's decisions are recorded in [Roadmap.md](Roadmap.md), and the scope they set for the first release is in [README.md](README.md).
+Active focus: **Phase 5 — the search-path tree, backtracking and persistence**. Phase 4 closed on 2026-08-16, two weeks before the checkpoint expected it. Phase 1's build is up and verified; Phase 0's decisions are recorded in [Roadmap.md](Roadmap.md), and the scope they set for the first release is in [README.md](README.md).
 
 **Open from Phase 0**
 
@@ -57,7 +57,8 @@ Active focus: **Phase 4 — the playable vertical slice**, and the end-of-August
 - [x] A console client (`repl/`) — the same interaction with no design surface, to judge it before building it (2026-08-16)
 - [x] Contextual help in the console: `?` orientation, `??` what the moves mean, `???` hints from the oracle (2026-08-16)
 - [x] Decided: the Play screen keeps the design's selected-hole model; the flat all-holes list is right for a REPL only (2026-08-16)
-- [ ] Wire Home → Setup → Play end to end in Laminar, programmer view, minimal styling, win ending only
+- [x] Wire Home → Setup → Play end to end in Laminar, programmer view, minimal styling, win ending only (2026-08-16)
+- [ ] Re-evaluate the 10 September date now that Phase 4 has closed
 
 **Later phases** (see [Roadmap.md](Roadmap.md) for scope and exit criteria)
 

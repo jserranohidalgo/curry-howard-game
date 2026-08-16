@@ -109,3 +109,5 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `repl/src/main/scala/curryhoward/repl/Moves.scala`
 - added `repl/src/main/scala/curryhoward/repl/View.scala`
 - added `repl/src/main/scala/curryhoward/repl/Help.scala`
+- added `web/src/main/scala/curryhoward/web/App.scala`
+- added `web/src/main/scala/curryhoward/web/Model.scala`
