@@ -99,7 +99,11 @@ One caution carried over from the analysis: the reused code's allocation behavio
 
 *Depends on:* Phase 1. *Done when:* the specification's §4.9 distributivity playthrough is reproduced move for move by a test; ScalaCheck generates random goals and move sequences on the JVM and the type checker accepts every resulting term; a round-trip property holds over serialization of the game tree; and the move set matches §3.2 of the specification cell by cell, including the backward/forward distinction for `∧.E` and `⟶.E`.
 
-## Phase 3 — Goal parser
+## Phase 3 — Goal parser (done 2026-08-15)
+
+**Built:** `ipl/Parser.scala`. Both notations accepted freely mixed — refusing a mixture would teach that they are different things, which is the opposite of the lesson — with conjunction binding tighter than disjunction, tighter than right-associative implication, matching what `Notation` prints so the two are inverse. Atoms canonicalise to initial capitals, which is what makes `parse(logician(f)) == parse(programmer(f)) == f`. Negation desugars to `A → ⊥` however it is written, so the engine never sees it as a connective. Errors are a code and a position, never a sentence (D14). `Goal.from` collects the distinct atoms in order of appearance — the parameters `def solution[P, Q, R]` binds. Three round-trip properties hold over generated formulas.
+
+The original plan for the phase:
 
 Re-implement `doc/mockup/design/parser.jsx` in the engine module: both notations freely mixed, right-associative implication, negation desugaring to `A → ⊥`, positioned error messages, and `puzzleFromType` (collect the atoms of the parsed goal into the signature's type parameters). Pair it with the printer from Phase 2. Errors carry a position and a code, not a translated string — D14 means the message is chosen at the edge.
 

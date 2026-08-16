@@ -100,3 +100,7 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `engine/src/main/scala/curryhoward/engine/ipl/ljt/Decide.scala`
 - added `engine/src/main/scala/curryhoward/engine/ipl/ljt/LJT.scala`
 - added `engine/src/test/scala/curryhoward/engine/LJTSuite.scala`
+
+## 2026-08-16
+- added `engine/src/main/scala/curryhoward/engine/ipl/Parser.scala`
+- added `engine/src/test/scala/curryhoward/engine/ParserSuite.scala`

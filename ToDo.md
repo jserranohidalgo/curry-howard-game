@@ -16,7 +16,7 @@ Conventions:
 
 ## To do
 
-Active focus: **Phase 2 — Engine core**. Phase 1's build is up and verified; Phase 0's decisions are recorded in [Roadmap.md](Roadmap.md), and the scope they set for the first release is in [README.md](README.md).
+Active focus: **Phase 4 — the playable vertical slice**, and the end-of-August checkpoint that goes with it. Phase 1's build is up and verified; Phase 0's decisions are recorded in [Roadmap.md](Roadmap.md), and the scope they set for the first release is in [README.md](README.md).
 
 **Open from Phase 0**
 
@@ -46,11 +46,11 @@ Active focus: **Phase 2 — Engine core**. Phase 1's build is up and verified; P
 - [ ] Test: ScalaCheck properties for well-typedness and for game-tree serialization round-trip
 - [x] Re-sugar `A ⟶ ⊥` as `¬a` in the logician printer (2026-08-15)
 
-**Phase 3 — Goal parser**
+**Phase 3 — Goal parser** (done 2026-08-15)
 
-- [ ] Re-implement `doc/mockup/design/parser.jsx` in the engine module (both notations, negation desugaring, positioned errors, `puzzleFromType`)
-- [ ] Return error codes and positions rather than translated strings
-- [ ] Test: `parse(print(t))` ≡ `t` round-trip property in both notations
+- [x] Re-implement `doc/mockup/design/parser.jsx` in the engine (both notations freely mixed, negation desugaring, `Goal.from` for the type parameters)
+- [x] Return error codes and positions rather than translated strings
+- [x] Test: `parse(print(t))` ≡ `t` round-trip property in both notations, plus both notations agreeing with each other
 
 **Phase 4 — Playable vertical slice**
 
