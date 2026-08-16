@@ -4,7 +4,6 @@ import scala.io.StdIn
 import curryhoward.engine.ipl.*
 import curryhoward.engine.ipl.nj.*
 import curryhoward.engine.ipl.nj.Partial.*
-import curryhoward.engine.ipl.ljt.Decide
 
 /** The Curry–Howard game, at a prompt.
   *
@@ -48,12 +47,11 @@ object Main:
             println(s"  ${describe(error, line)}")
             state
           case Right(goal) =>
-            // Say up front whether it can be finished at all. The oracle knows,
-            // and letting a student grind at a non-theorem without saying so
-            // would be a poor lesson — the negative ending is meant to be
-            // reached on purpose (§4.7).
-            if !Decide.provable(goal.formula) then
-              println("  note: this is not an intuitionistic theorem — expect to get stuck.")
+            // Deliberately *not* saying whether it is provable. The oracle
+            // knows, and `???` will say when asked — but the negative ending is
+            // something to hunt (§4.7), and the seeded examples include a
+            // non-theorem precisely so a player can go looking for it.
+            // Announcing it up front is a spoiler.
             state.copy(goal = Some(goal), tree = Some(GameTree.start(goal.formula)))
 
   private def play(state: State, goal: Goal): State =
