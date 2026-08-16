@@ -2,6 +2,7 @@ package curryhoward.engine
 package ipl
 package nj
 
+import Partial.*
 import Partial.Path
 
 /** The explored part of the search space — the game's memory.

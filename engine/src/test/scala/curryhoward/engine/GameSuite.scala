@@ -3,6 +3,7 @@ package curryhoward.engine
 import munit.FunSuite
 import ipl.*
 import ipl.nj.*
+import ipl.nj.Partial.*
 import Formula.Syntax.atom
 import Proof.interpret
 
@@ -171,6 +172,29 @@ class GameSuite extends FunSuite:
     val g = GameTree.start(distributivity).take("⟶.I")
     assertEquals(g.current.position.term(ToLambda.apply), None)
     assert(!g.current.position.isComplete)
+  }
+
+  test("a complete position is a proof, and interprets the same either way") {
+    // What the fixpoint buys: `toProof` is `sequence` over the hole layer, so a
+    // finished position converts to a Proof and interpretations run on that.
+    // One fold for finished derivations rather than two.
+    val played = GameTree
+      .start(A ==> A)
+      .take("⟶.I")
+      .take("Ax")
+
+    val position = played.current.position
+    assertEquals(position.status, Status.Won)
+
+    val viaPosition = position.term(ToScala.apply).map(ToScala.show)
+    val viaProof = position.toProof.map(pf => ToScala.show(pf.interpret(ToScala.apply)))
+    assertEquals(viaPosition, Some("(a: A) => a"))
+    assertEquals(viaProof, viaPosition, "a position and its proof interpret alike")
+  }
+
+  test("an unfinished position is not a proof") {
+    val g = GameTree.start(distributivity).take("⟶.I")
+    assertEquals(g.current.position.toProof, None)
   }
 
   test("a position with holes renders as the Play screen shows it") {

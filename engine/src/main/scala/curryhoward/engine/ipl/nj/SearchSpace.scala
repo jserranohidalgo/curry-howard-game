@@ -2,6 +2,7 @@ package curryhoward.engine
 package ipl
 package nj
 
+import Partial.*
 import NJ.given
 import cats.*
 import cats.syntax.all.*

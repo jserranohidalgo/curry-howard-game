@@ -3,6 +3,7 @@ package curryhoward.engine
 import munit.FunSuite
 import ipl.*
 import ipl.nj.*
+import ipl.nj.Partial.*
 import Formula.Syntax.atom
 import Proof.interpret
 

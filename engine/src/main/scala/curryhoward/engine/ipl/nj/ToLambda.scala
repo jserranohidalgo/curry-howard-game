@@ -2,6 +2,7 @@ package curryhoward.engine
 package ipl
 package nj
 
+import Partial.*
 import NJ.*
 import Lambda.*
 
