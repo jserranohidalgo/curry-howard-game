@@ -48,6 +48,16 @@ Three assets exist, and the workplan is largely a matter of joining them:
 
 So the first application is not a green-field build: it is a port, a hardening, and a faithful re-implementation of a UI that has already been designed down to the token.
 
+## Playing it
+
+There is a console version, ahead of the web app:
+
+```sh
+sbt repl/run
+```
+
+Type a signature (`(A, B) => (B, A)`) or the proposition it corresponds to (`a ∧ b → b ∧ a`) — either will do, and they may be mixed. A number plays a move; `?` says what to do at any prompt, `??` explains the moves on offer, `???` gives a hint. `back`, `view`, `tree`, `goal` and `quit` do the rest.
+
 ## Reading order
 
 - [Roadmap.md](Roadmap.md) — the phased workplan to a first working IPL application.

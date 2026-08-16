@@ -14,5 +14,8 @@ project/project/
 # Assembled site
 dist/
 
-# OS
+# OS and editors
 .DS_Store
+*.swp
+*.swo
+*~
