@@ -35,5 +35,10 @@ enum Lambda:
   case Let(binder: (Int, Formula), value: Lambda, body: Lambda)
   case Absurd(t: Lambda, goal: Formula)
 
+  /** An unfilled hole, with the type it must eventually have. A position
+    * mid-game is a term with these in it, which is what the Play screen shows.
+    */
+  case Hole(goal: Formula)
+
 object Lambda:
   given cats.Eq[Lambda] = cats.Eq.fromUniversalEquals

@@ -39,3 +39,9 @@ object ToLambda:
 
     case OrE((v, _), left, onLeft, right, onRight) =>
       Match(Var(v), left, onLeft, right, onRight)
+
+  /** A position, holes and all — what the term panel shows mid-game. */
+  def position(p: Partial): Lambda = p.fold(h => Lambda.Hole(h.con))(apply)
+
+  /** The finished term, if the position has no holes left. */
+  def complete(p: Partial): Option[Lambda] = p.term(apply)

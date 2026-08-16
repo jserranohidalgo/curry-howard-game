@@ -22,7 +22,7 @@ class NJSuite extends FunSuite:
     SearchStrategy.iterativeDeepening(maxDepth).apply(SearchSpace(goal)).headOption
 
   /** The same derivation, read as Scala. */
-  private def scala(p: Proof): String = ToScala.show(p.interpret(ToScala.apply))
+  private def scala(p: Proof): String = ToScala(lambda(p))
 
   /** The same derivation, read as a stored term. */
   private def lambda(p: Proof): Lambda = p.interpret(ToLambda.apply)

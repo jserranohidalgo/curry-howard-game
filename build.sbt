@@ -46,6 +46,21 @@ lazy val web = project
     libraryDependencies += "com.raquo" %%% "laminar" % V.laminar
   )
 
+// A console client, JVM only. The engine gains no console dependency from it:
+// the REPL is a client exactly as the web app is, and playing through it
+// exercises the same calls the Play screen will make.
+lazy val repl = project
+  .in(file("repl"))
+  .dependsOn(engine.jvm)
+  .settings(commonSettings)
+  .settings(
+    name := "curry-howard-repl",
+    Compile / mainClass := Some("curryhoward.repl.Main"),
+    run / fork := true,
+    run / connectInput := true,
+    run / outputStrategy := Some(StdoutOutput)
+  )
+
 // --- Static site assembly ---------------------------------------------------
 // No npm, no bundler: the app has no JavaScript dependencies, so a "build" is
 // the linker output plus the hand-written files in static/.
@@ -65,7 +80,7 @@ def assembleSite(js: File, static: File, out: File, log: Logger): File = {
 
 lazy val root = project
   .in(file("."))
-  .aggregate(engine.jvm, engine.js, web)
+  .aggregate(engine.jvm, engine.js, web, repl)
   .settings(
     name := "curry-howard-game",
     publish / skip := true,

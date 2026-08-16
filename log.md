@@ -104,3 +104,7 @@ Chronological record of files added to the bundle, maintained automatically by `
 ## 2026-08-16
 - added `engine/src/main/scala/curryhoward/engine/ipl/Parser.scala`
 - added `engine/src/test/scala/curryhoward/engine/ParserSuite.scala`
+- added `engine/src/main/scala/curryhoward/engine/ipl/nj/Cleanup.scala`
+- added `repl/src/main/scala/curryhoward/repl/Main.scala`
+- added `repl/src/main/scala/curryhoward/repl/Moves.scala`
+- added `repl/src/main/scala/curryhoward/repl/View.scala`

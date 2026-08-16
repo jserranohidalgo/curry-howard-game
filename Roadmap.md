@@ -111,6 +111,9 @@ Re-implement `doc/mockup/design/parser.jsx` in the engine module: both notations
 
 ## Phase 4 — Playable vertical slice
 
+**A console client came first** (2026-08-16, `repl/`). Before committing an interaction to Laminar it is worth playing it somewhere with no design surface at all, and a REPL is that place: four panels a turn — goal, program, resources, moves — with the §3.2 table drawn whole, holes lettered, moves numbered across every hole, and `back`/`view`/`tree`/`goal` for the rest. It settled three things cheaply. Moves offered across all holes at once removes the selection step entirely, which the Play screen may want to reconsider. A `let` needs its bound type shown or two of them are indistinguishable, which is the presentation question of D21 arriving in practice. And `view` can only re-notate *formulae* until Phase 7 exists, which makes concrete how much of the correspondence the second view is carrying.
+
+
 The first thing anyone can actually play: Home → Setup → Play wired end to end in Laminar, programmer view only, minimal styling, no search-path panel and no negative ending. Select a hole, see the legal moves, apply one, watch the term grow, reach *won*. This is also where the engine's shape meets a real UI for the first time, so expect to revise the descriptors Phase 2 emits.
 
 *Depends on:* Phase 3. *Done when:* distributivity can be solved in the browser from a goal typed into Setup, and the win overlay appears. *Deferred:* everything below.

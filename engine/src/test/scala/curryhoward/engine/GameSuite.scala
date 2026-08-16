@@ -81,7 +81,7 @@ class GameSuite extends FunSuite:
     assertEquals(played.depth, 12)
 
     // The same finished position, read two ways.
-    val rendered = played.current.position.term(ToScala.apply).map(ToScala.show).get
+    val rendered = ToScala(ToLambda.position(played.current.position))
     val term = played.current.position.term(ToLambda.apply).get
     assertEquals(
       rendered,
@@ -89,6 +89,45 @@ class GameSuite extends FunSuite:
         "qr match { case Left(q: Q) => Left((pqr._1, q)); case Right(r: R) => Right((pqr._1, r)) }"
     )
     assertEquals(TypeCheck.check(term, distributivity), Right(()))
+  }
+
+  test("§4.9's final step: the cleaned-up program") {
+    // The specification's own last move — drop the scaffolding, keep one type
+    // annotation. The `val qr` is used exactly once, so it inlines; a binding
+    // used twice would stay, because inlining it would duplicate the value.
+    val term = SearchStrategy
+      .iterativeDeepening(12)
+      .apply(SearchSpace(distributivity))
+      .headOption
+      .getOrElse(fail("expected a proof"))
+      .interpret(ToLambda.apply)
+
+    assertEquals(
+      ToScala(term),
+      "(pqr: (P, Either[Q, R])) => val qr: Either[Q, R] = pqr._2; " +
+        "qr match { case Left(q: Q) => Left((pqr._1, q)); case Right(r: R) => Right((pqr._1, r)) }"
+    )
+    assertEquals(
+      ToScala.bare(Cleanup.simplify(term)),
+      "pqr => pqr._2 match { case Left(q) => Left((pqr._1, q)); case Right(r) => Right((pqr._1, r)) }"
+    )
+  }
+
+  test("a binding used twice is kept, not duplicated") {
+    // (A => B) => (A => (B, B)): the result of f is wanted twice, so inlining
+    // would copy the application. Sharing earns its keep.
+    val f = (A ==> B) ==> (A ==> (B /\ B))
+    val term = SearchStrategy
+      .iterativeDeepening(10)
+      .apply(SearchSpace(f))
+      .headOption
+      .getOrElse(fail("expected a proof"))
+      .interpret(ToLambda.apply)
+    val cleaned = ToScala.bare(Cleanup.simplify(term))
+    assert(
+      cleaned.contains("val") || cleaned.count(_ == 'f') >= 2,
+      s"either the binding is kept or the application is duplicated: $cleaned"
+    )
   }
 
   test("a hole with no move at all is an immediate dead end") {
@@ -186,8 +225,8 @@ class GameSuite extends FunSuite:
     val position = played.current.position
     assertEquals(position.status, Status.Won)
 
-    val viaPosition = position.term(ToScala.apply).map(ToScala.show)
-    val viaProof = position.toProof.map(pf => ToScala.show(pf.interpret(ToScala.apply)))
+    val viaPosition = ToLambda.complete(position).map(ToScala.apply)
+    val viaProof = position.toProof.map(pf => ToScala(pf.interpret(ToLambda.apply)))
     assertEquals(viaPosition, Some("(a: A) => a"))
     assertEquals(viaProof, viaPosition, "a position and its proof interpret alike")
   }
@@ -201,7 +240,7 @@ class GameSuite extends FunSuite:
     // What `fold` buys over `term`: an unfinished position is renderable,
     // holes and all. This is the term card mid-game.
     val g = GameTree.start(distributivity).take("⟶.I").takeLet(Q \/ R).take("∧.E₂")
-    val shown = ToScala.show(g.current.position.fold(ToScala.hole)(ToScala.apply))
+    val shown = ToScala(ToLambda.position(g.current.position))
     assertEquals(
       shown,
       "(pqr: (P, Either[Q, R])) => val qr: Either[Q, R] = pqr._2; … : Either[(P, Q), (P, R)]"
