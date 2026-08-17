@@ -20,7 +20,7 @@ Active focus: **Phase 7 — the logician view** (the ND derivation renderer and 
 
 Phases 0–4 are done, plus the console client and Phase 10's contextual help, which ran ahead of the plan. The game is playable two ways: `sbt distDev` and serve `dist/` for the browser, `sbt repl/run` for the console. Phase 0's decisions are in [Roadmap.md](Roadmap.md); the scope they set is in [README.md](README.md); the engine is `engine/src/main/scala/curryhoward/engine/` (`ipl/` shared, `ipl/nj/` the game's calculus, `ipl/ljt/` the oracle).
 
-Two things to settle early, before the phases that depend on them: the release date below, and how a `let` appears to the logician (Phase 7).
+One thing still to settle: the release date below. (How a `let` appears to the logician is answered — D25.)
 
 **Open from Phase 0**
 
@@ -74,7 +74,7 @@ Two things to settle early, before the phases that depend on them: the release d
 - [x] Phase 6: a line that *cannot be finished* is now surfaced — a node whose every continuation has been tried says so, which is the failure the dead-end toast could not see (2026-08-18)
 - [ ] Phase 7 — logician view: the ND derivation renderer and the notation switch
 - [x] Draw the reference figure the renderer must produce: §4.9's play as a standard Gentzen derivation, in [spec/specification.md](spec/specification.md) §4.9, with the move-for-move correspondence (2026-08-18)
-- [ ] Decide, before writing that renderer, how a `let` appears to the logician — inline, explicit cut bar, or cut-during-play-then-normalised (open question in [Roadmap.md](Roadmap.md); the LJ-shaped option is ruled out by D22)
+- [x] Decided how a `let` appears to the logician: the view is a forest — a main derivation plus derived facts, grafted where used (D25, 2026-08-18). The premise that decided it: every interface move must show progress in both views (2026-08-18)
 - [ ] Phase 8 — recreate the designed UI across all screens against the reference screenshots
 - [ ] Phase 8: decide whether a destructor that fills the hole and one that binds an auxiliary `val` should look different inside the same cell — deferred by D24, currently told apart only by the instance's text
 - [ ] Phase 9 — ES/EN, static deploy, classroom trial
