@@ -111,3 +111,7 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `repl/src/main/scala/curryhoward/repl/Help.scala`
 - added `web/src/main/scala/curryhoward/web/App.scala`
 - added `web/src/main/scala/curryhoward/web/Model.scala`
+
+## 2026-08-18
+- added `engine/src/main/scala/curryhoward/engine/ipl/nj/Save.scala`
+- added `engine/src/test/scala/curryhoward/engine/SaveSuite.scala`
