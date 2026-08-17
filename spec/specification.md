@@ -511,6 +511,70 @@ destructor** (`∨.E`) that opens branches and **adds resources** (`q`, `r`),
 by a variable (`Ax`) and a backward projection (`∧.EL`). Read logically, the very
 same sequence of moves is the natural-deduction proof of the distributivity law.
 
+#### The same play, drawn as a derivation
+
+This is that proof, in the standard Gentzen presentation — the rules of §3.1, the
+same conventions, and the figure the **logician view** must produce from the state
+above. Write $C \equiv (p \wedge q) \vee (p \wedge r)$ for the goal.
+
+$$
+\dfrac{
+  \dfrac{
+    \dfrac{[p \wedge (q \vee r)]^1}{q \vee r}\,{\wedge}\mathsf{E}_2
+    \qquad
+    \dfrac{
+      \dfrac{\dfrac{[p \wedge (q \vee r)]^1}{p}\,{\wedge}\mathsf{E}_1 \quad [q]^2}{p \wedge q}\,{\wedge}\mathsf{I}
+    }{C}\,{\vee}\mathsf{I}_1
+    \qquad
+    \dfrac{
+      \dfrac{\dfrac{[p \wedge (q \vee r)]^1}{p}\,{\wedge}\mathsf{E}_1 \quad [r]^3}{p \wedge r}\,{\wedge}\mathsf{I}
+    }{C}\,{\vee}\mathsf{I}_2
+  }{C}\,{\vee}\mathsf{E}^{2,3}
+}{p \wedge (q \vee r) \rightarrow (p \wedge q) \vee (p \wedge r)}\,{\rightarrow}\mathsf{I}^1
+$$
+
+Four conventions, and the third is the one students most often miss:
+
+1. **The rule name sits to the right of its inference bar**, exactly as in §3.1.
+2. **A discharged hypothesis is bracketed and labelled**, and the rule that
+   discharges it carries the same label: ${\rightarrow}\mathsf{I}^1$ discharges the
+   antecedent, ${\vee}\mathsf{E}^{2,3}$ discharges one case hypothesis per branch.
+3. **One hypothesis, three occurrences.** $[p \wedge (q \vee r)]^1$ appears three
+   times and every occurrence carries label 1 — discharge is by *label*, not by
+   occurrence. This is the same fact the game shows as a resource staying in scope
+   after it has been used (§4.5).
+4. **${\vee}\mathsf{E}$ has three premises**: the major premise (the disjunction)
+   leftmost, then a derivation of $C$ per case.
+
+The derivation is **normal**: no introduction is immediately followed by the
+elimination of the connective it introduced, so there is no detour to remove.
+
+Move for move against the play above:
+
+| Move | Rule in the figure |
+|---|---|
+| 1 — `⟶.I` | ${\rightarrow}\mathsf{I}^1$, the bottom bar, discharging the antecedent |
+| 2 — `∧.ER` (forward) | ${\wedge}\mathsf{E}_2$, the major premise of ${\vee}\mathsf{E}$ |
+| 3 — `∨.E` | ${\vee}\mathsf{E}^{2,3}$, discharging $[q]^2$ and $[r]^3$ |
+| 4, 8 — `∨.IL`, `∨.IR` | ${\vee}\mathsf{I}_1$, ${\vee}\mathsf{I}_2$ |
+| 5, 9 — `∧.I` | the two ${\wedge}\mathsf{I}$ bars |
+| 6, 10 — `∧.EL` (backward) | the two ${\wedge}\mathsf{E}_1$ bars |
+| 7, 11 — `Ax` | the leaves $[q]^2$ and $[r]^3$ |
+
+Two things the figure settles, both of which the renderer inherits.
+
+**A derivation is a tree, so a subderivation used twice is written twice.**
+${\wedge}\mathsf{E}_1$ appears once per branch, matching the program's two uses of
+`x._1`. Natural deduction has no syntax for sharing; the programmer's way of
+sharing a value — a `let` — is the cut rule, and cut is not a rule of §3.1.
+
+**The forward move has no bar of its own.** `∧.ER` reads as a step in the program
+because it names a value, but logically it *is* the ${\wedge}\mathsf{E}_2$ above,
+applied where the major premise of ${\vee}\mathsf{E}$ sits. That is why §4.9 counts
+a forward extraction as one move, and it is the whole of the open question the
+logician view has to answer: a `let` whose body is still a hole has no use site to
+inline into, so a move that changes the program would change nothing here.
+
 ### 4.10 Two negative playthroughs
 
 Winning the *negative* way (§4.7) means showing the type is **uninhabited** by

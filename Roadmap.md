@@ -216,7 +216,7 @@ The options:
 
 Leaning towards (4), undecided. Note that none of this forces an engine change: the state is `Γ ⊢ C` either way, and a completed NJ derivation can be rendered as an LJ-style figure. It is a question about what the second view *shows*.
 
-*Depends on:* Phase 4 (independent of 5–6, so it can run in parallel). *Done when:* the mid-game state of screenshot `04` renders as screenshot `05` from the same node, and switching view mid-play changes nothing but notation. Per D12 this ships in the first release, but keeping it independent means it can slip without blocking the phases around it.
+*Depends on:* Phase 4 (independent of 5–6, so it can run in parallel). *Done when:* the mid-game state of screenshot `04` renders as screenshot `05` from the same node; the finished distributivity proof renders as **the figure now drawn in [spec/specification.md](spec/specification.md) §4.9**, which is the target the renderer is checked against; and switching view mid-play changes nothing but notation. Per D12 this ships in the first release, but keeping it independent means it can slip without blocking the phases around it.
 
 ## Phase 8 — The designed UI
 
