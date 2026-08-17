@@ -58,7 +58,9 @@ python3 -m http.server 8080 --directory dist
 open http://localhost:8080
 ```
 
-`sbt "~distDev"` rebuilds on every change; reload the page to pick it up.
+`sbt "~distDev"` rebuilds on every change — a Scala source or anything under `static/` — and reloading the page picks it up. Two things worth knowing when it looks broken: **quote it**, since in zsh an unquoted `~distDev` is a tilde expansion that never reaches sbt; and sbt stamps sources by **hash**, so `touch` triggers nothing and only a real edit does.
+
+**Why a server, when the app is static?** Only for the PWA half. Opening `dist/index.html` straight off the filesystem does play — the stylesheets, the tokens, the logos and `localStorage` all work from `file://` — but the origin is opaque, so the web manifest is refused as a cross-origin fetch and the service worker will not register. That is the offline shell D3 asks for, and it is also how the app will really be served, so the server is what we test against. (There is no single file to open, either: `dist/` is `index.html`, `js/main.js`, the stylesheets and the assets.)
 
 **In a terminal.** The console version came first and goes further — it has the search path, backtracking and contextual help:
 

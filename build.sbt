@@ -86,12 +86,23 @@ lazy val root = project
     publish / skip := true,
     staticDir := baseDirectory.value / "static",
     distDir := baseDirectory.value / "dist",
-    distDev := assembleSite(
-      (web / Compile / fastLinkJSOutput).value,
-      staticDir.value,
-      distDir.value,
-      streams.value.log
-    ),
+    // `static/` is a source directory of no project, so nothing in the task
+    // graph makes `~distDev` watch it: edit the CSS and the watch sits there.
+    // Declaring the glob is half the fix — the task also has to *read* its
+    // inputs, or they never reach the watch. (The Scala sources need neither:
+    // they arrive through `web / fastLinkJSOutput`'s own dependencies. Note
+    // that sbt stamps sources by hash, so `touch` alone triggers nothing — a
+    // watch that looks broken may only be waiting for a real edit.)
+    distDev / fileInputs += staticDir.value.toGlob / ** / "*",
+    distDev := {
+      val _ = (distDev / allInputFiles).value
+      assembleSite(
+        (web / Compile / fastLinkJSOutput).value,
+        staticDir.value,
+        distDir.value,
+        streams.value.log
+      )
+    },
     distProd := assembleSite(
       (web / Compile / fullLinkJSOutput).value,
       staticDir.value,
