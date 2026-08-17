@@ -80,6 +80,26 @@ final case class Model(
     */
   def deadEnd: Boolean = position.exists(_.status == Status.Dead)
 
+  /** The negative ending (§4.7, D13): every play from the opening tried, none
+    * of them a proof. Ends the game, as winning does.
+    *
+    * Cheap in the common case despite walking the tree: the check gives up at
+    * the first move nobody has taken yet, which at the root is nearly always
+    * immediate.
+    */
+  def refuted: Boolean = tree.exists(_.refuted)
+
+  /** This *line* has been played out and leads nowhere — every continuation
+    * from here has been tried and every one of them failed.
+    *
+    * Not an ending: the game is only lost when the *root* is exhausted. It is
+    * the honest way to tell a player that a wrong turn was a wrong turn, and it
+    * is the only way they can find that out before Phase 10's hints — a line
+    * that cannot be finished looks exactly like an ordinary position until it
+    * has been explored.
+    */
+  def lineExhausted: Boolean = tree.exists(t => t.exhausted(t.currentId))
+
   /** Where "backtrack" goes: the nearest ancestor that still has a real choice
     * to make, falling back to the parent, and then to the root.
     *

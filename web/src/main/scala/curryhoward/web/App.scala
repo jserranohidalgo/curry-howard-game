@@ -40,7 +40,13 @@ object App:
   private def render(m: Model): HtmlElement = m.screen match
     case Screen.Home  => home
     case Screen.Setup => setup(m)
-    case Screen.Play  => if m.won then won(m) else play(m)
+    case Screen.Play =>
+      // The three endings of §6.2, in the order they are decided: a solution
+      // beats everything, and refutation is only ever reached with no solution
+      // anywhere in the tree.
+      if m.won then won(m)
+      else if m.refuted then lost(m)
+      else play(m)
 
   // --- Home -----------------------------------------------------------------
 
@@ -195,7 +201,9 @@ object App:
         hint(m),
         resourcesCard(m)
       ),
-      if m.deadEnd then deadEndToast(m) else emptyNode,
+      if m.deadEnd then deadEndToast(m)
+      else if m.lineExhausted then exhaustedToast(m)
+      else emptyNode,
       m.confirm.fold(emptyNode)(confirmDialog)
     )
 
@@ -304,6 +312,61 @@ object App:
         disabled := m.backtrackTarget.isEmpty,
         onClick --> { _ => edit(_.backtrack) },
         "Retroceder"
+      )
+    )
+
+  /** Every continuation from here has been tried, and none of them worked.
+    *
+    * The other half of §4.9's lesson, and the half the dead-end toast cannot
+    * see: a premature `∨.I₁` leaves a position that looks perfectly ordinary —
+    * it has legal moves — and only turns out to be a wrong turn once the lines
+    * below it have been played out. Saying so here is the difference between a
+    * player learning something and a player grinding.
+    */
+  private def exhaustedToast(m: Model): HtmlElement =
+    div(
+      cls := "toast",
+      div(
+        div(cls := "toast-title", "Esta línea no lleva a ninguna parte"),
+        div(cls := "muted", "Has probado todas sus continuaciones. Vuelve a un punto de elección.")
+      ),
+      button(
+        cls := "primary",
+        disabled := m.backtrackTarget.isEmpty,
+        onClick --> { _ => edit(_.backtrack) },
+        "Retroceder"
+      )
+    )
+
+  /** The negative ending (§4.7): the search space was finite, it has been
+    * walked, and there is no program of this type.
+    *
+    * Note what is *not* claimed — that the goal is unprovable in general. What
+    * the player has established is that this game has no solution, which for a
+    * finite space is the same thing, and which they established by playing
+    * rather than by being told.
+    */
+  private def lost(m: Model): HtmlElement =
+    val goal = m.goal.get
+    div(
+      cls := "scrim",
+      div(
+        cls := "card result",
+        div(cls := "cross", "✗"),
+        h2("¡Esto no es un teorema!"),
+        p(
+          cls := "lede",
+          "Has agotado la búsqueda: no queda ningún movimiento por probar, y ninguno construye el tipo."
+        ),
+        div(cls := "eyebrow", "La signatura que no se puede habitar"),
+        pre(cls := "mono", Notation.programmer(goal.formula)),
+        div(cls := "eyebrow", "Como proposición"),
+        pre(cls := "mono", Notation.logician(goal.formula)),
+        p(
+          cls := "muted",
+          s"${m.tree.fold(0)(_.size)} posiciones exploradas, todas sin salida."
+        ),
+        button(cls := "primary", onClick --> { _ => edit(_ => Model.empty) }, "Nueva partida")
       )
     )
 

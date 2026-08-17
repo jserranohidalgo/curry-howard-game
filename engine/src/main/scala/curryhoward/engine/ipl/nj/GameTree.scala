@@ -114,13 +114,63 @@ object GameTree:
     /** Every (hole, move) pair available at the current node, whether or not it
       * has been played.
       */
-    def options: List[(MoveKey, NJ[Sequent])] =
-      tree.current.position.holes.flatMap: (path, _) =>
-        tree.current.position
-          .movesAt(path)
-          .zipWithIndex
-          .map((move, i) => (MoveKey(path, i), move))
-          .toList
+    def options: List[(MoveKey, NJ[Sequent])] = tree.optionsAt(tree.currentId)
+
+    /** The same, at any node — what exhaustion has to enumerate. */
+    def optionsAt(id: NodeId): List[(MoveKey, NJ[Sequent])] =
+      tree.nodes.get(id).toList.flatMap: node =>
+        node.position.holes.flatMap: (path, _) =>
+          node.position
+            .movesAt(path)
+            .zipWithIndex
+            .map((move, i) => (MoveKey(path, i), move))
+            .toList
+
+    /** **Nothing can be built from here, and the player has shown it** by
+      * trying everything (§4.7; interaction spec §6.2 calls it *lost*).
+      *
+      * Three cases, and the middle one is what keeps this affordable:
+      *
+      *   - a **won** position is a solution, so it is never exhausted;
+      *   - a **dead** position has a hole no rule applies to, so no play can
+      *     ever complete it — exhausted without exploring a thing, which
+      *     prunes whole subtrees that would otherwise have to be walked;
+      *   - otherwise, exhausted exactly when **every** (hole, move) pair
+      *     available here has been played and led to an exhausted child.
+      *
+      * This reads the pair-keying rather than counting children, which is the
+      * whole reason children are keyed. The prototype compares a child *count*
+      * against the number of pairs, and nothing stops the same pair being
+      * played twice from one node — jump back, replay, and the count reaches
+      * the threshold with pairs still untried, announcing "This is not a
+      * theorem!" about a theorem. Keyed children make the arithmetic
+      * impossible: replaying returns the child that already exists, so
+      * `children.get(pair)` is the exact question.
+      *
+      * The recursion terminates because it walks the *explored* tree, which is
+      * finite and acyclic — a child's id is always greater than its parent's.
+      * An unexplored branch is simply not exhausted, which is the honest
+      * answer: an undecided search continues (D13).
+      */
+    def exhausted(id: NodeId): Boolean =
+      tree.nodes.get(id).exists: node =>
+        node.position.status match
+          case Status.Won  => false
+          case Status.Dead => true
+          case Status.Open =>
+            tree
+              .optionsAt(id)
+              .forall((key, _) => node.children.get(key).exists(tree.exhausted))
+
+    /** The negative ending: every play from the opening has been tried, and
+      * none of them proves the goal.
+      *
+      * Only ever true of a **finite** search space that has actually been
+      * walked (D13). A goal whose space is infinite never reaches this, and the
+      * game simply continues — which is what an undecided search honestly looks
+      * like.
+      */
+    def refuted: Boolean = tree.exhausted(tree.rootId)
 
 /** One explored position. */
 final case class GameNode(

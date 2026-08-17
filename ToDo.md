@@ -16,7 +16,7 @@ Conventions:
 
 ## To do
 
-Active focus: **Phase 6 — the negative ending, finite case**.
+Active focus: **Phase 7 — the logician view** (the ND derivation renderer and the notation switch).
 
 Phases 0–4 are done, plus the console client and Phase 10's contextual help, which ran ahead of the plan. The game is playable two ways: `sbt distDev` and serve `dist/` for the browser, `sbt repl/run` for the console. Phase 0's decisions are in [Roadmap.md](Roadmap.md); the scope they set is in [README.md](README.md); the engine is `engine/src/main/scala/curryhoward/engine/` (`ipl/` shared, `ipl/nj/` the game's calculus, `ipl/ljt/` the oracle).
 
@@ -70,8 +70,8 @@ Two things to settle early, before the phases that depend on them: the release d
 - [x] Phase 5 — search-path tree, jump-to-node backtracking, `Retroceder` in the footer, dead-end toast, the single confirm dialog with `Esc` to dismiss, and local persistence of the whole tree with resume-or-discard on Home (2026-08-17)
 - [x] Phase 5: the search path collapses a forward move's two nodes into one row, labelled by the destructor the player chose (D24) (2026-08-17)
 - [x] Keep engine state serializable (D4/D5) — `Save` writes the play, not the positions; eight tests including a round-trip property over random plays with jumps (2026-08-17)
-- [ ] Phase 6 — the negative ending, finite case: sound exhaustion, a regression test against false refutation, a decided corpus
-- [ ] Phase 6/10: a hole with *no move* (the dead-end toast) and a line that *cannot be finished* are different failures, and Phase 5 can only see the first — §4.9's premature `∨.I` is the second, because a `let` is always available. Decide how the second is surfaced
+- [x] Phase 6 — the negative ending, finite case: exhaustion keyed by (hole, move) pair, the "¡Esto no es un teorema!" overlay, a regression test against false refutation, a corpus and two properties cross-checked against LJT (2026-08-18)
+- [x] Phase 6: a line that *cannot be finished* is now surfaced — a node whose every continuation has been tried says so, which is the failure the dead-end toast could not see (2026-08-18)
 - [ ] Phase 7 — logician view: the ND derivation renderer and the notation switch
 - [ ] Decide, before writing that renderer, how a `let` appears to the logician — inline, explicit cut bar, or cut-during-play-then-normalised (open question in [Roadmap.md](Roadmap.md); the LJ-shaped option is ruled out by D22)
 - [ ] Phase 8 — recreate the designed UI across all screens against the reference screenshots

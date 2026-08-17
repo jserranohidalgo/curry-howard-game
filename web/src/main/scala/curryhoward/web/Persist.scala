@@ -20,13 +20,14 @@ object Persist:
 
   /** Save a game in progress; anything else clears the slot.
     *
-    * Leaving Play — by winning, restarting or quitting — is abandoning the
-    * search, and the design treats an abandoned search as gone.
+    * Leaving Play — by winning, being refuted, restarting or quitting — is
+    * abandoning the search, and the design treats an abandoned search as
+    * gone.
     */
   def write(model: Model): Unit =
     (model.screen, model.tree) match
-      case (Screen.Play, Some(tree)) if !model.won => put(Save.encode(tree))
-      case _                                      => clear()
+      case (Screen.Play, Some(tree)) if !model.won && !model.refuted => put(Save.encode(tree))
+      case _                                                        => clear()
 
   def read: Option[GameTree] =
     for
