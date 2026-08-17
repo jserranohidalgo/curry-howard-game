@@ -117,3 +117,7 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `engine/src/test/scala/curryhoward/engine/SaveSuite.scala`
 - added `web/src/main/scala/curryhoward/web/Persist.scala`
 - added `engine/src/test/scala/curryhoward/engine/ExhaustionSuite.scala`
+- added `engine/src/main/scala/curryhoward/engine/ipl/nj/Figure.scala`
+- added `engine/src/main/scala/curryhoward/engine/ipl/nj/ToFigure.scala`
+- added `engine/src/test/scala/curryhoward/engine/FigureSuite.scala`
+- added `web/src/main/scala/curryhoward/web/Derivation.scala`

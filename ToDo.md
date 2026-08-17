@@ -16,7 +16,7 @@ Conventions:
 
 ## To do
 
-Active focus: **Phase 7 — the logician view** (the ND derivation renderer and the notation switch).
+Active focus: **Phase 8 — the designed UI** (recreate the handoff across every screen against the reference screenshots).
 
 Phases 0–4 are done, plus the console client and Phase 10's contextual help, which ran ahead of the plan. The game is playable two ways: `sbt distDev` and serve `dist/` for the browser, `sbt repl/run` for the console. Phase 0's decisions are in [Roadmap.md](Roadmap.md); the scope they set is in [README.md](README.md); the engine is `engine/src/main/scala/curryhoward/engine/` (`ipl/` shared, `ipl/nj/` the game's calculus, `ipl/ljt/` the oracle).
 
@@ -72,7 +72,9 @@ One thing still to settle: the release date below. (How a `let` appears to the l
 - [x] Keep engine state serializable (D4/D5) — `Save` writes the play, not the positions; eight tests including a round-trip property over random plays with jumps (2026-08-17)
 - [x] Phase 6 — the negative ending, finite case: exhaustion keyed by (hole, move) pair, the "¡Esto no es un teorema!" overlay, a regression test against false refutation, a corpus and two properties cross-checked against LJT (2026-08-18)
 - [x] Phase 6: a line that *cannot be finished* is now surfaced — a node whose every continuation has been tried says so, which is the failure the dead-end toast could not see (2026-08-18)
-- [ ] Phase 7 — logician view: the ND derivation renderer and the notation switch
+- [x] Phase 7 — logician view: `Figure`/`ToFigure` in the engine, `Derivation` in the web app, and the notation switch across goal, term, prose, resources, rules table, search path and the win overlay (2026-08-18)
+- [x] Phase 7: a discharged hypothesis is drawn over an empty branch (`[A]ⁿ ⋮ C`, as §3.1 writes it), and the selection frame covers the goal rather than the `⋮` (2026-08-18)
+- [ ] The console's `view` command can now draw derivations too — `Figure.ascii` exists; wire it up when the REPL is next touched
 - [x] Draw the reference figure the renderer must produce: §4.9's play as a standard Gentzen derivation, in [spec/specification.md](spec/specification.md) §4.9, with the move-for-move correspondence (2026-08-18)
 - [x] Decided how a `let` appears to the logician: the view is a forest — a main derivation plus derived facts, grafted where used (D25, 2026-08-18). The premise that decided it: every interface move must show progress in both views (2026-08-18)
 - [ ] Phase 8 — recreate the designed UI across all screens against the reference screenshots

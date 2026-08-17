@@ -200,7 +200,27 @@ The reference decision procedure the exit criterion calls for is **in hand** (Ph
 
 *Depends on:* Phase 5, and on D13. *Done when:* excluded middle reaches the "This is not a theorem!" overlay by genuine exhaustion; replaying a move from an earlier node can never produce a false refutation, with a regression test for exactly that; and a corpus of small theorems and non-theorems is decided or left open correctly, cross-checked against LJT. Double-negation elimination is expected to remain open — that is deferred work, not a failure. **All met, 2026-08-18**, double-negation elimination included: it stays open, as expected.
 
-## Phase 7 — The logician view
+## Phase 7 — The logician view (done 2026-08-18)
+
+**Built.** `Figure` and `ToFigure` in the engine — a fourth interpretation of a position, beside the Scala renderer and the type checker — plus `Derivation` in the web app, which draws the same structure with real rules. A position becomes a **forest** (D25): the main derivation, its open leaves the holes, and beside it the facts forward moves have derived. Grafting happens at the moment of use, so the finished figure is §4.9's normal derivation with no `let` in it and nothing to normalise away.
+
+Three details that turned out to matter, none of them in the plan:
+
+- **A discharged hypothesis has to be visible over an empty branch.** §3.1 writes `→I`'s premise as `[A] ⋮ B` and `∨E`'s as `A∨B  [A]⋮C  [B]⋮C`, and while a branch is still a hole that is the only place the label's meaning appears — without it the figure shows `→I¹` discharging something the player cannot see. `Figure.Todo` carries the hypotheses just put in force; once a branch has any structure they show up where they are used, as leaves, which is how a finished figure reads.
+- **The selection frame is the formula, not the dots.** `⋮` is the *missing* derivation, so it sits outside the box: what a click picks up is the goal still to be proved.
+- **Labels are handed out reading downwards**, so `→I` at the bottom carries ¹ and a `∨E` above it carries ² and ³ — the numbering of the specification's own figure rather than an arbitrary one.
+
+`Figure.ascii` draws the same structure as text. It is what the tests assert against, and it is what the console client needs whenever its `view` command is finished (Phase 4 noted that `view` could only re-notate formulas until this existed).
+
+**The switch** reaches everything: the goal card (*signatura a habitar* ⟷ *proposición a demostrar*), the term card (Scala ⟷ derivation), the prose, the resources panel (*recursos* ⟷ *premisas*, formulas in either notation), the rules table (column headers *Construir/Destruir* ⟷ *Introducción/Eliminación*, row symbols `( , )` ⟷ `∧`, rule names `∧.E₁` ⟷ `∧E₁`), the search path's rule names, and the win overlay, which offers the other reading of the finished play rather than only its own.
+
+**Move effects are said in formulas** rather than in prose, so nothing there needs translating at the edge (D14): a forward use shows `⊢ q ∨ r`, the fact it will derive; a destructor shows `de p ∧ (q ∨ r)`, the premise it consumes; an introduction shows what it leaves to prove.
+
+**Verified in the browser.** Every move changes both views — including the composite forward move, which leaves the derivation alone and puts a fact on the shelf, exactly D25's case; the save is byte-identical across a switch and a switch back, so the reading really is a view; holes are clickable in either view and select the same hole; and distributivity played out ends with §4.9's figure in the win overlay. Eight engine tests cover the structure, including the fact that a fact used twice is drawn twice with the *same* hole index in both drawings.
+
+**Not done here, deliberately:** matching screenshot `05` pixel for pixel is Phase 8's business — this is the right figure in modest styling, as the rest of the Play screen is.
+
+### The original plan for the phase
 
 The second reading: the same term rendered as a Gentzen natural-deduction derivation — real fraction bars, rule names to the right of each bar, discharged assumptions bracketed with superscript labels, and, per **D25**, a main derivation beside the *derived facts* that forward moves have bound, each grafted into the tree at the point where its resource is used. Plus the notation switch across goal, term, scope, rules table (*Construct/Destruct* → *Introduction/Elimination*) and prose, with a test that it never touches game state.
 

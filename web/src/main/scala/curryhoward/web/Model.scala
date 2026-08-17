@@ -8,6 +8,20 @@ import curryhoward.engine.ipl.nj.Partial.*
 enum Screen:
   case Home, Setup, Play
 
+/** The two readings of one game (D12). Switching is a *view* change and must
+  * never touch game state — the whole claim of the project is that these are
+  * two notations for the same thing, so the position cannot depend on which one
+  * is on screen.
+  */
+enum View:
+  case Programmer, Logician
+
+  def isLogician: Boolean = this == View.Logician
+
+  /** The notation the formulas are printed in. */
+  def show(f: Formula): String =
+    if isLogician then Notation.logician(f) else Notation.programmer(f)
+
 /** The one destructive action on the Play screen, waiting to be confirmed.
   *
   * The interaction spec allows exactly one confirmation dialog in the whole
@@ -54,7 +68,9 @@ final case class Model(
       */
     treeOpen: Boolean = false,
     /** A pending confirmation, if the player asked to abandon the game. */
-    confirm: Option[Confirm] = None
+    confirm: Option[Confirm] = None,
+    /** Which reading is on screen. Not part of the game (D12). */
+    view: View = View.Programmer
 ):
 
   def position: Option[Partial] = tree.map(_.current.position)
@@ -99,6 +115,20 @@ final case class Model(
     * has been explored.
     */
   def lineExhausted: Boolean = tree.exists(t => t.exhausted(t.currentId))
+
+  /** The position read as a derivation and the facts beside it (D25). */
+  def forest: Option[Figure.Forest] = position.map(ToFigure.apply)
+
+  /** Which hole is selected, as an index into the position's hole list — the
+    * figure numbers its open leaves the same way, so the two views agree on
+    * what is selected.
+    */
+  def selectedIndex: Option[Int] =
+    for
+      (path, _) <- selectedHole
+      i = holes.indexWhere(_._1 == path)
+      if i >= 0
+    yield i
 
   /** Where "backtrack" goes: the nearest ancestor that still has a real choice
     * to make, falling back to the parent, and then to the root.
@@ -182,6 +212,16 @@ object Model:
     def backtrack: Model = m.backtrackTarget.fold(m)(m.jump)
 
     def toggleTree: Model = m.copy(treeOpen = !m.treeOpen)
+
+    /** Switch reading. Note what this copies: the view and nothing else. */
+    def toggleView: Model =
+      m.copy(view = if m.view.isLogician then View.Programmer else View.Logician)
+
+    /** Select a hole by its index in the position's hole list — what the
+      * logician view has to hand when a leaf is clicked.
+      */
+    def selectAt(index: Int): Model =
+      m.holes.lift(index).fold(m)((path, _) => m.select(path))
 
     def ask(what: Confirm): Model = m.copy(confirm = Some(what))
 

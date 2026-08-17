@@ -177,6 +177,7 @@ object App:
       cls := "play",
       div(
         cls := "left",
+        viewSwitch(m),
         searchPath(m),
         h3(cls := "overline", "Movimientos"),
         movesPanel(m),
@@ -197,7 +198,7 @@ object App:
       div(
         cls := "right",
         goalCard(m),
-        termCard(m),
+        if m.view.isLogician then proofCard(m) else termCard(m),
         hint(m),
         resourcesCard(m)
       ),
@@ -227,7 +228,7 @@ object App:
             span(cls := "muted", s"${tree.size} · ${if m.treeOpen then "−" else "+"}")
           ),
           if !m.treeOpen then emptyNode
-          else div(cls := "path-rows", pathRows(tree, tree.rootId, 0))
+          else div(cls := "path-rows", pathRows(tree, tree.rootId, 0, m.view))
         )
 
   /** One row per position, depth-first, indented by depth.
@@ -238,17 +239,17 @@ object App:
     * a hole — is a state they never chose to be in, so the path draws the pair
     * as the move they actually made and jumps to the end of it.
     */
-  private def pathRows(tree: GameTree, id: GameTree.NodeId, depth: Int): List[HtmlElement] =
+  private def pathRows(tree: GameTree, id: GameTree.NodeId, depth: Int, view: View): List[HtmlElement] =
     val node = tree.nodes(id)
     val children = node.children.values.toList.sortBy(_.value)
 
     collapsedLet(tree, node) match
       case Some(child) =>
-        pathRow(tree, child, depth, label = moveLabel(tree, child)) ::
-          child.children.values.toList.sortBy(_.value).flatMap(pathRows(tree, _, depth + 1))
+        pathRow(tree, child, depth, label = moveLabel(tree, child, view)) ::
+          child.children.values.toList.sortBy(_.value).flatMap(pathRows(tree, _, depth + 1, view))
       case None =>
-        pathRow(tree, node, depth, label = moveLabel(tree, node)) ::
-          children.flatMap(pathRows(tree, _, depth + 1))
+        pathRow(tree, node, depth, label = moveLabel(tree, node, view)) ::
+          children.flatMap(pathRows(tree, _, depth + 1, view))
 
   /** The elimination node that finishes a `let`, if this node is the start of
     * one such pair: a `let` with exactly one child, and that child filling the
@@ -272,8 +273,8 @@ object App:
       move <- tree.nodes(parent).position.movesAt(via.hole).lift(via.moveIndex)
     yield move
 
-  private def moveLabel(tree: GameTree, node: GameNode): String =
-    moveOf(tree, node).fold("inicio")(NJ.label)
+  private def moveLabel(tree: GameTree, node: GameNode, view: View): String =
+    moveOf(tree, node).fold("inicio")(move => ruleName(NJ.label(move), view))
 
   private def pathRow(tree: GameTree, node: GameNode, depth: Int, label: String): HtmlElement =
     val position = node.position
@@ -403,8 +404,55 @@ object App:
     val params = if goal.tyParams.isEmpty then "" else goal.tyParams.mkString("[", ", ", "]")
     div(
       cls := "card goal-card",
-      div(cls := "eyebrow", "Signatura a habitar"),
-      div(cls := "mono goal", s"def solution$params: ${Notation.programmer(goal.formula)}")
+      if m.view.isLogician then
+        div(
+          div(cls := "eyebrow", "Proposición a demostrar"),
+          div(cls := "mono goal", Notation.logician(goal.formula))
+        )
+      else
+        div(
+          div(cls := "eyebrow", "Signatura a habitar"),
+          div(cls := "mono goal", s"def solution$params: ${Notation.programmer(goal.formula)}")
+        )
+    )
+
+  /** The switch. It changes the notation of everything on screen and the game
+    * of nothing — which is the claim the whole project rests on, so the button
+    * says which reading you are in rather than which one you would get.
+    */
+  private def viewSwitch(m: Model): HtmlElement =
+    div(
+      cls := "view-switch",
+      button(
+        cls := "seg",
+        cls("on") := !m.view.isLogician,
+        onClick.filter(_ => m.view.isLogician) --> { _ => edit(_.toggleView) },
+        "Programador"
+      ),
+      button(
+        cls := "seg",
+        cls("on") := m.view.isLogician,
+        onClick.filter(_ => !m.view.isLogician) --> { _ => edit(_.toggleView) },
+        "Lógico"
+      )
+    )
+
+  /** The same position as a natural-deduction derivation (D25): one main
+    * figure, and the facts derived beside it.
+    */
+  private def proofCard(m: Model): HtmlElement =
+    val forest = m.forest.get
+    val names = m.selectedHole.map((_, hole) => ToScala.names(hole.ant.reverse)).getOrElse(Map.empty)
+    val selected = m.selectedIndex
+    val pick: Int => Unit = i => edit(_.selectAt(i))
+
+    div(
+      div(
+        cls := "card proof-card",
+        div(cls := "eyebrow", "Demostración en construcción"),
+        div(cls := "proof-scroll", Derivation(forest.main, pick, selected))
+      ),
+      Derivation.shelf(forest.derived, names, pick, selected)
     )
 
   /** The term, with its holes as chips. Exactly one is selected, and the moves
@@ -436,8 +484,8 @@ object App:
       case Some((_, hole)) =>
         div(
           cls := "hint",
-          "Hueco seleccionado ",
-          span(cls := "mono strong", Notation.programmer(hole.con)),
+          if m.view.isLogician then "Objetivo pendiente " else "Hueco seleccionado ",
+          span(cls := "mono strong", m.view.show(hole.con)),
           " — elige una regla a la izquierda."
         )
 
@@ -446,9 +494,12 @@ object App:
       case None => div()
       case Some((_, hole)) =>
         val names = ToScala.names(hole.ant.reverse)
+        // In the logician's reading a resource is a formula you may use as a
+        // premise; the name is the programmer's handle on it, kept so the two
+        // panels line up entry for entry (D25).
         div(
           cls := "resources",
-          div(cls := "eyebrow", "Recursos disponibles"),
+          div(cls := "eyebrow", if m.view.isLogician then "Premisas disponibles" else "Recursos disponibles"),
           if hole.ant.isEmpty then div(cls := "muted", "Nada en contexto todavía.")
           else
             div(
@@ -457,8 +508,8 @@ object App:
                 div(
                   cls := "chip",
                   span(cls := "mono strong", names.getOrElse(v, s"v$v")),
-                  span(cls := "mono", Notation.programmer(ty)),
-                  span(cls := "kind", kind(ty))
+                  span(cls := "mono", m.view.show(ty)),
+                  span(cls := "kind", if m.view.isLogician then "premisa" else kind(ty))
                 )
               }
             )
@@ -477,12 +528,20 @@ object App:
 
     div(
       cls := "rules",
+      div(
+        cls := "rules-row rules-head",
+        div(),
+        // The columns are one thing under two names — which is the lesson the
+        // header is carrying, so it switches with the view.
+        div(cls := "col-head", if m.view.isLogician then "Introducción" else "Construir"),
+        div(cls := "col-head", if m.view.isLogician then "Eliminación" else "Destruir")
+      ),
       Rules.rows.map { row =>
         div(
           cls := "rules-row",
-          div(cls := "rules-label mono", row.label),
-          div(cls := "rules-cell", cell(row.key + "I", row.construct, byRule, m.openCell, names, goal)),
-          div(cls := "rules-cell", cell(row.key + "E", row.destruct, byRule, m.openCell, names, goal))
+          div(cls := "rules-label mono", if m.view.isLogician then row.logic else row.label),
+          div(cls := "rules-cell", cell(row.key + "I", row.construct, byRule, m.openCell, names, goal, m.view)),
+          div(cls := "rules-cell", cell(row.key + "E", row.destruct, byRule, m.openCell, names, goal, m.view))
         )
       }
     )
@@ -546,14 +605,15 @@ object App:
       byRule: Map[String, List[Offer]],
       openCell: Option[String],
       names: Map[Int, String],
-      goal: Option[Formula]
+      goal: Option[Formula],
+      view: View
   ): HtmlElement =
     spec match
       case Rules.Cell.Absent => div(cls := "absent", "—")
       case Rules.Cell.Holds(label, rules) =>
         rules.flatMap(byRule.getOrElse(_, Nil)) match
-          case Nil            => div(cls := "inapplicable mono", label)
-          case offer :: Nil   => moveButton(offer, names, goal)
+          case Nil            => div(cls := "inapplicable mono", ruleName(label, view))
+          case offer :: Nil   => moveButton(offer, names, goal, view)
           case several =>
             val open = openCell.contains(key)
             div(
@@ -562,20 +622,53 @@ object App:
                 cls := "move stack",
                 cls("open") := open,
                 onClick --> { _ => edit(_.toggleCell(key)) },
-                span(cls := "move-name mono", label),
+                span(cls := "move-name mono", ruleName(label, view)),
                 span(cls := "count", several.length.toString)
               ),
               if !open then emptyNode
-              else div(cls := "cell-menu", several.map(moveButton(_, names, goal)))
+              else div(cls := "cell-menu", several.map(moveButton(_, names, goal, view)))
             )
 
-  private def moveButton(offer: Offer, names: Map[Int, String], goal: Option[Formula]): HtmlElement =
+  private def moveButton(
+      offer: Offer,
+      names: Map[Int, String],
+      goal: Option[Formula],
+      view: View
+  ): HtmlElement =
     button(
       cls := "move",
       onClick --> { _ => edit(_.play(offer.index, offer.andThen)) },
-      span(cls := "move-name mono", offer.rule),
-      span(cls := "move-effect mono", effect(offer, names, goal))
+      span(cls := "move-name mono", ruleName(offer.rule, view)),
+      span(
+        cls := "move-effect mono",
+        if view.isLogician then logicalEffect(offer, goal) else effect(offer, names, goal)
+      )
     )
+
+  /** `⟶.E` to the programmer, `→E` to the logician — the same rule under §3.1's
+    * name and §3.2's.
+    */
+  private def ruleName(rule: String, view: View): String =
+    if view.isLogician then rule.replace(".", "").replace("⟶", "→") else rule
+
+  /** What a move does, said in formulas rather than in Scala.
+    *
+    * A forward use *derives* something — which is the fact it will put on the
+    * shelf. A destructor *uses* a premise. An introduction leaves you with
+    * whatever its premises are still to prove. No prose, so nothing here needs
+    * translating at the edge (D14).
+    */
+  private def logicalEffect(offer: Offer, goal: Option[Formula]): String =
+    offer.via match
+      case Some((_, from)) => "⊢ " + Notation.logician(bound(offer.move).getOrElse(from))
+      case None =>
+        NJ.actsOn(offer.move) match
+          case Some((_, premise)) => "de " + Notation.logician(premise)
+          case None =>
+            val opens = NJ.subgoals(offer.move).map(s => Notation.logician(s.con))
+            if opens.isEmpty then "cierra" else opens.mkString(", ")
+
+  private def bound(move: NJ[Sequent]): Option[Formula] = NJ.binds(move)
 
   /** What the player will see happen.
     *
@@ -618,11 +711,30 @@ object App:
         div(cls := "tick", "✓"),
         h2("Resuelto"),
         p(cls := "lede", "El tipo está habitado — y la proposición, demostrada."),
-        div(cls := "eyebrow", "Como lo construiste"),
-        pre(cls := "mono", ToScala(term)),
-        div(cls := "eyebrow", "Limpio"),
-        pre(cls := "mono", s"def solution$params = ${ToScala.bare(Cleanup.simplify(term))}"),
-        button(cls := "primary", onClick --> { _ => edit(_ => Model.empty) }, "Nueva partida")
+        // Both readings of the finished play, since the ending is where the
+        // correspondence is easiest to see: one is the program you wrote, the
+        // other the proof you drew — and the `let` has gone from both.
+        if m.view.isLogician then
+          div(
+            div(cls := "eyebrow", "La demostración"),
+            div(cls := "proof-scroll", Derivation(m.forest.get.main, _ => (), None))
+          )
+        else
+          div(
+            div(cls := "eyebrow", "Como lo construiste"),
+            pre(cls := "mono", ToScala(term)),
+            div(cls := "eyebrow", "Limpio"),
+            pre(cls := "mono", s"def solution$params = ${ToScala.bare(Cleanup.simplify(term))}")
+          ),
+        div(
+          cls := "dialog-actions",
+          button(cls := "primary", onClick --> { _ => edit(_ => Model.empty) }, "Nueva partida"),
+          button(
+            cls := "ghost",
+            onClick --> { _ => edit(_.toggleView) },
+            if m.view.isLogician then "Ver el programa" else "Ver la demostración"
+          )
+        )
       )
     )
 
@@ -668,18 +780,19 @@ object Rules:
     case Holds(label: String, rules: List[String])
     case Absent
 
-  /** `key` names the row for the unfolded-cell state; `label` is what the row
-    * shows the player.
+  /** `key` names the row for the unfolded-cell state; `label` and `logic` are
+    * what the row shows in each reading — `( , )` and `∧` being the same thing
+    * said twice, which is the point of the table.
     */
-  final case class Row(key: String, label: String, construct: Cell, destruct: Cell)
+  final case class Row(key: String, label: String, logic: String, construct: Cell, destruct: Cell)
 
   import Cell.*
 
   val rows: List[Row] = List(
-    Row("fun", "=>", Holds("⟶.I", List("⟶.I")), Holds("⟶.E", List("⟶.E"))),
-    Row("prod", "( , )", Holds("∧.I", List("∧.I")), Holds("∧.E", List("∧.E₁", "∧.E₂"))),
-    Row("sum", "Either", Holds("∨.I", List("∨.I₁", "∨.I₂")), Holds("∨.E", List("∨.E"))),
-    Row("unit", "Unit", Holds("⊤.I", List("⊤.I")), Absent),
-    Row("void", "Nothing", Absent, Holds("⊥.E", List("⊥.E"))),
-    Row("hyp", "hyp", Absent, Holds("Ax", List("Ax")))
+    Row("fun", "=>", "→", Holds("⟶.I", List("⟶.I")), Holds("⟶.E", List("⟶.E"))),
+    Row("prod", "( , )", "∧", Holds("∧.I", List("∧.I")), Holds("∧.E", List("∧.E₁", "∧.E₂"))),
+    Row("sum", "Either", "∨", Holds("∨.I", List("∨.I₁", "∨.I₂")), Holds("∨.E", List("∨.E"))),
+    Row("unit", "Unit", "⊤", Holds("⊤.I", List("⊤.I")), Absent),
+    Row("void", "Nothing", "⊥", Absent, Holds("⊥.E", List("⊥.E"))),
+    Row("hyp", "hyp", "hip.", Absent, Holds("Ax", List("Ax")))
   )
