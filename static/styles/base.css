@@ -253,6 +253,25 @@ button.ghost:focus-visible {
 .move-name { font-size: 12px; color: var(--text-strong); font-weight: var(--fw-semibold); }
 .move-effect { font-size: 10.5px; color: var(--text-muted); }
 
+/* A cell with several instances shows a count and unfolds in place. */
+.cell-wrap { position: relative; }
+.move.stack { flex-direction: row; align-items: center; justify-content: space-between; }
+.move.stack.open { background: var(--green-tint); border-color: var(--green-600); }
+.count {
+  font-size: 10px; font-weight: var(--fw-semibold); line-height: 1;
+  padding: 3px 5px; color: var(--text-inverse); background: var(--green-600);
+}
+.cell-menu {
+  position: absolute; z-index: 10; top: calc(100% + 4px); left: 0;
+  min-width: 100%; width: max-content; max-width: 300px;
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default); box-shadow: var(--shadow-2);
+  padding: 4px;
+}
+/* The destruct column sits at the panel's right edge — open inwards there. */
+.rules-cell:last-child .cell-menu { left: auto; right: 0; }
+
 .inapplicable, .absent {
   min-height: 34px; display: flex; align-items: center; justify-content: center;
   font-size: 12px; color: var(--grey-300);
@@ -260,6 +279,51 @@ button.ghost:focus-visible {
   border-left: var(--rule-thick) solid var(--urjc-red-darker);
 }
 .absent { border: none; background: none; color: var(--grey-300); }
+
+/* The search path: every position explored, and the way back to any of them. */
+.search-path { margin-bottom: var(--space-5); }
+.path-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: none; border: none; border-bottom: 1px solid var(--border-subtle);
+  padding: 0 0 6px; cursor: pointer;
+}
+.path-toggle:hover .overline { color: var(--text-strong); }
+.path-rows { margin-top: var(--space-2); max-height: 220px; overflow-y: auto; }
+.path-row {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: 4px 8px; font-size: 12px; cursor: pointer;
+  border-left: var(--rule-thick) solid transparent;
+}
+.path-row:hover { background: var(--surface-subtle); }
+.path-row.current { border-left-color: var(--urjc-red); background: var(--surface-subtle); }
+.path-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--grey-300); flex: none;
+}
+.path-row.won .path-dot { background: var(--green-600); }
+.path-row.dead .path-dot { background: var(--urjc-red); }
+.path-rule { color: var(--text-strong); }
+.path-meta { margin-left: auto; font-size: 10px; color: var(--text-muted); }
+
+/* A dead end closes a branch, not the game. */
+.toast {
+  position: fixed; left: 50%; bottom: var(--space-6); transform: translateX(-50%);
+  display: flex; align-items: center; gap: var(--space-5);
+  background: var(--surface-card); border: 1px solid var(--border-default);
+  border-left: var(--rule-thick) solid var(--urjc-red);
+  box-shadow: var(--shadow-2); padding: 14px 18px; max-width: 520px; z-index: 30;
+}
+.toast-title { font-weight: var(--fw-semibold); font-size: 13px; }
+
+.dialog { max-width: 420px; }
+.dialog-actions { display: flex; gap: var(--space-2); margin-top: var(--space-5); }
+
+/* An unfinished game, offered back on Home. */
+.resume {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-5);
+  border: 1px solid var(--border-subtle); border-left: var(--rule-thick) solid var(--urjc-red);
+  padding: 14px 18px; margin: var(--space-5) 0;
+}
+.resume-actions { display: flex; gap: var(--space-2); flex: none; }
 
 .footer {
   margin-top: var(--space-6); padding-top: var(--space-4);

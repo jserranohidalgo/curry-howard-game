@@ -16,7 +16,7 @@ Conventions:
 
 ## To do
 
-Active focus: **Phase 5 — the search-path tree, backtracking and persistence**.
+Active focus: **Phase 6 — the negative ending, finite case**.
 
 Phases 0–4 are done, plus the console client and Phase 10's contextual help, which ran ahead of the plan. The game is playable two ways: `sbt distDev` and serve `dist/` for the browser, `sbt repl/run` for the console. Phase 0's decisions are in [Roadmap.md](Roadmap.md); the scope they set is in [README.md](README.md); the engine is `engine/src/main/scala/curryhoward/engine/` (`ipl/` shared, `ipl/nj/` the game's calculus, `ipl/ljt/` the oracle).
 
@@ -28,6 +28,7 @@ Two things to settle early, before the phases that depend on them: the release d
 
 **Phase 1 — Foundations** (done bar the tail)
 
+- [x] `sbt "~distDev"` now watches `static/` too — it is a source directory of no project, so the glob has to be declared *and* read by the task (`distDev / allInputFiles`). Scala sources always worked; the appearance otherwise was `touch` against hash stamping (2026-08-17)
 - [ ] Add scalafmt, and CI if we want it
 - [ ] Vendor the four typefaces as woff2 into `static/fonts/` and declare them in `static/styles/fonts.css` — the design system @imports them from Google Fonts, which contradicts D3 (Phase 8 fidelity item)
 
@@ -43,7 +44,7 @@ Two things to settle early, before the phases that depend on them: the release d
 - [x] Game tree over partial positions, children keyed by the (hole, move) pair that produced them (2026-08-15)
 - [x] Write an independent type checker `check(term, ctx)` (2026-08-15)
 - [x] Test: reproduce the §4.9 distributivity playthrough move for move (2026-08-15)
-- [ ] Keep engine state serializable — moves as data, no closures (D4/D5); hole paths and move indices are already plain data, so this is codecs plus a round-trip property
+- [x] Keep engine state serializable — moves as data, no closures (D4/D5) (2026-08-17, in Phase 5)
 - [ ] Structured move descriptors, no i18n inside the engine — `label` and `isForward` exist; the Play screen will want premises, bindings and the opened holes too
 - [ ] Run *every* engine-built term through the type checker in the property tests, not just the worked examples
 - [ ] Test: ScalaCheck properties for well-typedness and for game-tree serialization round-trip
@@ -61,15 +62,20 @@ Two things to settle early, before the phases that depend on them: the release d
 - [x] Contextual help in the console: `?` orientation, `??` what the moves mean, `???` hints from the oracle (2026-08-16)
 - [x] Decided: the Play screen keeps the design's selected-hole model; the flat all-holes list is right for a REPL only (2026-08-16)
 - [x] Wire Home → Setup → Play end to end in Laminar, programmer view, minimal styling, win ending only (2026-08-16)
+- [x] The rules table is the handoff's: no `let` row, a `let` offered under the destructor that will produce it — in one stroke, `val qr: Either[Q, R] = pqr._2` — and cells with several instances unfolding in place with a count (D24, presentation only) (2026-08-17)
 - [ ] **Re-evaluate the 10 September date.** The Phase 4 checkpoint has arrived, two weeks early, so there is margin — but Phases 7 (the derivation renderer) and 8 (design fidelity) are the two risks and both are still ahead. Decide deliberately rather than assume the margin holds.
 
 **Later phases** (see [Roadmap.md](Roadmap.md) for scope and exit criteria)
 
-- [ ] Phase 5 — search-path tree, jump-to-node backtracking, dead-end toast, confirm dialog, and local persistence of the whole tree
+- [x] Phase 5 — search-path tree, jump-to-node backtracking, `Retroceder` in the footer, dead-end toast, the single confirm dialog with `Esc` to dismiss, and local persistence of the whole tree with resume-or-discard on Home (2026-08-17)
+- [x] Phase 5: the search path collapses a forward move's two nodes into one row, labelled by the destructor the player chose (D24) (2026-08-17)
+- [x] Keep engine state serializable (D4/D5) — `Save` writes the play, not the positions; eight tests including a round-trip property over random plays with jumps (2026-08-17)
 - [ ] Phase 6 — the negative ending, finite case: sound exhaustion, a regression test against false refutation, a decided corpus
+- [ ] Phase 6/10: a hole with *no move* (the dead-end toast) and a line that *cannot be finished* are different failures, and Phase 5 can only see the first — §4.9's premature `∨.I` is the second, because a `let` is always available. Decide how the second is surfaced
 - [ ] Phase 7 — logician view: the ND derivation renderer and the notation switch
 - [ ] Decide, before writing that renderer, how a `let` appears to the logician — inline, explicit cut bar, or cut-during-play-then-normalised (open question in [Roadmap.md](Roadmap.md); the LJ-shaped option is ruled out by D22)
 - [ ] Phase 8 — recreate the designed UI across all screens against the reference screenshots
+- [ ] Phase 8: decide whether a destructor that fills the hole and one that binds an auxiliary `val` should look different inside the same cell — deferred by D24, currently told apart only by the instance's text
 - [ ] Phase 9 — ES/EN, static deploy, classroom trial
 - [ ] Phase 10 — contextual help in the web UI: `?`/`??`/`???` as affordances rather than commands, and the Help screen written against them
 

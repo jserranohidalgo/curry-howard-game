@@ -115,3 +115,4 @@ Chronological record of files added to the bundle, maintained automatically by `
 ## 2026-08-18
 - added `engine/src/main/scala/curryhoward/engine/ipl/nj/Save.scala`
 - added `engine/src/test/scala/curryhoward/engine/SaveSuite.scala`
+- added `web/src/main/scala/curryhoward/web/Persist.scala`
