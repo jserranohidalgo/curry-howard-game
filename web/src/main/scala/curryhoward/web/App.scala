@@ -67,6 +67,16 @@ object App:
         src := "./assets/logo-etsii.svg",
         alt := "Universidad Rey Juan Carlos — Escuela Técnica Superior de Ingeniería Informática"
       ),
+      // While a game is on, the bar carries the two numbers that say where it
+      // stands: how much is left to do, and how much has been done.
+      if m.screen == Screen.Play && m.tree.nonEmpty then
+        div(
+          cls := "counters",
+          span(cls := "divider"),
+          span(strong(m.holes.length.toString), " ", if m.holes.sizeIs == 1 then "hueco abierto" else "huecos abiertos"),
+          span(strong(m.tree.fold(0)(_.depth).toString), " movimientos")
+        )
+      else emptyNode,
       div(cls := "topbar-spacer"),
       viewSwitch(m),
       langSwitch
@@ -334,7 +344,11 @@ object App:
       div(
         cls := "left",
         searchPath(m),
-        h3(cls := "overline", "Movimientos"),
+        div(
+          cls := "panel-head",
+          h3(cls := "overline", if m.view.isLogician then "Reglas" else "Constructores y destructores"),
+          span(cls := "muted", s"${offers(m).length} disponibles")
+        ),
         movesPanel(m),
         div(
           cls := "footer",
@@ -344,10 +358,16 @@ object App:
             cls := "ghost",
             disabled := m.backtrackTarget.isEmpty,
             onClick --> { _ => edit(_.backtrack) },
+            Icons.undo(14),
             "Retroceder"
           ),
-          button(cls := "ghost", onClick --> { _ => edit(_.ask(Confirm.Restart)) }, "Reiniciar"),
-          button(cls := "ghost", onClick --> { _ => edit(_.ask(Confirm.Quit)) }, "Salir")
+          button(
+            cls := "ghost",
+            onClick --> { _ => edit(_.ask(Confirm.Restart)) },
+            Icons.restart(14),
+            "Reiniciar"
+          ),
+          button(cls := "ghost", onClick --> { _ => edit(_.ask(Confirm.Quit)) }, "Cancelar")
         )
       ),
       div(
@@ -380,7 +400,8 @@ object App:
             cls := "path-toggle",
             onClick --> { _ => edit(_.toggleTree) },
             span(cls := "overline", "Camino de búsqueda"),
-            span(cls := "muted", s"${tree.size} · ${if m.treeOpen then "−" else "+"}")
+            span(cls := "muted path-count", s"${tree.size} nodos · profundidad ${tree.depth}"),
+            span(cls := "path-chevron", if m.treeOpen then Icons.chevronDown() else Icons.chevronRight())
           ),
           if !m.treeOpen then emptyNode
           else div(cls := "path-rows", pathRows(tree, tree.rootId, 0, m.view))
@@ -559,15 +580,16 @@ object App:
     val params = if goal.tyParams.isEmpty then "" else goal.tyParams.mkString("[", ", ", "]")
     div(
       cls := "card goal-card",
-      if m.view.isLogician then
-        div(
-          div(cls := "eyebrow", "Proposición a demostrar"),
-          div(cls := "mono goal", Notation.logician(goal.formula))
-        )
+      div(
+        cls := "goal-top",
+        div(cls := "eyebrow", if m.view.isLogician then "Proposición que demostrar" else "Signatura que habitar"),
+        div(cls := "eyebrow accent", "Tu objetivo")
+      ),
+      if m.view.isLogician then div(cls := "goal-prop", TypeText(goal.formula, View.Logician))
       else
         div(
-          div(cls := "eyebrow", "Signatura a habitar"),
-          div(cls := "mono goal", s"def solution$params: ${Notation.programmer(goal.formula)}")
+          cls := "mono goal",
+          Code(s"def solution$params: ${Notation.programmer(goal.formula)}", Code.atomsOf(goal))
         )
     )
 
@@ -618,17 +640,26 @@ object App:
     val holes = m.holes
     val selectedPath = m.selectedHole.map(_._1)
 
+    val atoms = m.goal.map(Code.atomsOf).getOrElse(Set.empty)
+    val dead = position.deadHoles.toSet
+
     div(
       cls := "card term-card mono",
-      ToScala.pieces(ToLambda.position(position)).map {
-        case Piece.Text(t) => span(t)
+      ToScala.formatted(ToLambda.position(position)).map {
+        case Piece.Text(t) => span(Code(t, atoms))
         case Piece.HoleAt(i, goal) =>
           val path = holes.lift(i).map(_._1)
           span(
             cls := "hole",
             cls("selected") := path == selectedPath,
+            // A hole no rule applies to is struck out rather than red-outlined:
+            // the red outline means "you are here", and a dead end is not a
+            // place to be.
+            cls("dead") := path.exists(dead.contains),
             onClick --> { _ => path.foreach(p => edit(_.select(p))) },
-            s"… : ${Notation.programmer(goal)}"
+            Shapes.glyph(goal, 15),
+            span("… : "),
+            TypeText(goal, View.Programmer)
           )
       }
     )
@@ -640,7 +671,8 @@ object App:
         div(
           cls := "hint",
           if m.view.isLogician then "Objetivo pendiente " else "Hueco seleccionado ",
-          span(cls := "mono strong", m.view.show(hole.con)),
+          Shapes.glyph(hole.con, 16),
+          span(cls := "mono strong", TypeText(hole.con, m.view)),
           " — elige una regla a la izquierda."
         )
 
@@ -654,17 +686,25 @@ object App:
         // panels line up entry for entry (D25).
         div(
           cls := "resources",
-          div(cls := "eyebrow", if m.view.isLogician then "Premisas disponibles" else "Recursos disponibles"),
-          if hole.ant.isEmpty then div(cls := "muted", "Nada en contexto todavía.")
+          div(cls := "eyebrow", if m.view.isLogician then "Hipótesis en el ámbito" else "Recursos en el ámbito"),
+          if hole.ant.isEmpty then
+            div(cls := "muted", "Todavía no hay recursos. Las entradas y las ligaduras aparecerán aquí.")
           else
             div(
               cls := "chips",
               hole.ant.reverse.map { (v, ty) =>
                 div(
                   cls := "chip",
-                  span(cls := "mono strong", names.getOrElse(v, s"v$v")),
-                  span(cls := "mono", m.view.show(ty)),
-                  span(cls := "kind", if m.view.isLogician then "premisa" else kind(ty))
+                  ty match
+                    case Formula.Atom(name) => Shapes.atom(name, 26)
+                    case other              => Shapes.glyph(other, 26)
+                  ,
+                  div(
+                    cls := "chip-body",
+                    div(cls := "mono strong", names.getOrElse(v, s"v$v")),
+                    div(cls := "mono chip-ty", TypeText(ty, m.view))
+                  ),
+                  span(cls := "kind", if m.view.isLogician then logicKind(ty) else kind(ty))
                 )
               }
             )
@@ -694,7 +734,11 @@ object App:
       Rules.rows.map { row =>
         div(
           cls := "rules-row",
-          div(cls := "rules-label mono", if m.view.isLogician then row.logic else row.label),
+          div(
+            cls := "rules-label mono",
+            row.shape.map(Shapes.glyph(_, 19)).toList,
+            span(if m.view.isLogician then row.logic else row.label)
+          ),
           div(cls := "rules-cell", cell(row.key + "I", row.construct, byRule, m.openCell, names, goal, m.view)),
           div(cls := "rules-cell", cell(row.key + "E", row.destruct, byRule, m.openCell, names, goal, m.view))
         )
@@ -764,20 +808,35 @@ object App:
       view: View
   ): HtmlElement =
     spec match
-      case Rules.Cell.Absent => div(cls := "absent", "—")
+      case Rules.Cell.Absent => div(cls := "absent", title := "Esa regla no existe", "—")
       case Rules.Cell.Holds(label, rules) =>
+        // Every cell is one fixed-height row showing **only the rule name**, so
+        // the table's geometry never changes as the game is played — the table
+        // is the syllabus, and a syllabus that reflows while you read it is
+        // teaching you nothing. What a move does is in the tooltip when there
+        // is one instance, and in the unfolded list when there are several.
         rules.flatMap(byRule.getOrElse(_, Nil)) match
-          case Nil            => div(cls := "inapplicable mono", ruleName(label, view))
-          case offer :: Nil   => moveButton(offer, names, goal, view)
+          case Nil =>
+            div(cls := "tcell off mono", title := "No se aplica al hueco seleccionado", ruleName(label, view))
+
+          case offer :: Nil =>
+            button(
+              cls := "tcell on mono",
+              title := effectTip(offer, names, goal, view),
+              onClick --> { _ => edit(_.play(offer.index, offer.andThen)) },
+              ruleName(offer.rule, view)
+            )
+
           case several =>
             val open = openCell.contains(key)
             div(
               cls := "cell-wrap",
               button(
-                cls := "move stack",
+                cls := "tcell on stack mono",
                 cls("open") := open,
+                title := s"${several.length} instancias — elige una",
                 onClick --> { _ => edit(_.toggleCell(key)) },
-                span(cls := "move-name mono", ruleName(label, view)),
+                span(ruleName(label, view)),
                 span(cls := "count", several.length.toString)
               ),
               if !open then emptyNode
@@ -799,6 +858,17 @@ object App:
         if view.isLogician then logicalEffect(offer, goal) else effect(offer, names, goal)
       )
     )
+
+  /** What a single-instance cell says when you hover it — the effect that no
+    * longer fits inside the cell now that its height is fixed.
+    */
+  private def effectTip(
+      offer: Offer,
+      names: Map[Int, String],
+      goal: Option[Formula],
+      view: View
+  ): String =
+    if view.isLogician then logicalEffect(offer, goal) else effect(offer, names, goal)
 
   /** `⟶.E` to the programmer, `→E` to the logician — the same rule under §3.1's
     * name and §3.2's.
@@ -903,6 +973,17 @@ object App:
       "Volver al inicio"
     )
 
+  /** The same shape, named in the other vocabulary — which is the whole point
+    * of the switch, said in one word per chip.
+    */
+  private def logicKind(ty: Formula): String = ty match
+    case Formula.And(_, _)     => "conjunción"
+    case Formula.Or(_, _)      => "disyunción"
+    case Formula.Implies(_, _) => "implicación"
+    case Formula.Atom(_)       => "átomo"
+    case Formula.True          => "verdad"
+    case Formula.False         => "falsedad"
+
   private def kind(ty: Formula): String = ty match
     case Formula.And(_, _)     => "par"
     case Formula.Or(_, _)      => "suma"
@@ -944,15 +1025,25 @@ object Rules:
     * what the row shows in each reading — `( , )` and `∧` being the same thing
     * said twice, which is the point of the table.
     */
-  final case class Row(key: String, label: String, logic: String, construct: Cell, destruct: Cell)
+  final case class Row(
+      key: String,
+      label: String,
+      logic: String,
+      shape: Option[Formula],
+      construct: Cell,
+      destruct: Cell
+  )
 
   import Cell.*
 
+  private val a = Formula.Atom("A")
+  private val b = Formula.Atom("B")
+
   val rows: List[Row] = List(
-    Row("fun", "=>", "→", Holds("⟶.I", List("⟶.I")), Holds("⟶.E", List("⟶.E"))),
-    Row("prod", "( , )", "∧", Holds("∧.I", List("∧.I")), Holds("∧.E", List("∧.E₁", "∧.E₂"))),
-    Row("sum", "Either", "∨", Holds("∨.I", List("∨.I₁", "∨.I₂")), Holds("∨.E", List("∨.E"))),
-    Row("unit", "Unit", "⊤", Holds("⊤.I", List("⊤.I")), Absent),
-    Row("void", "Nothing", "⊥", Absent, Holds("⊥.E", List("⊥.E"))),
-    Row("hyp", "hyp", "hip.", Absent, Holds("Ax", List("Ax")))
+    Row("fun", "=>", "→", Some(Formula.Implies(a, b)), Holds("⟶.I", List("⟶.I")), Holds("⟶.E", List("⟶.E"))),
+    Row("prod", "( , )", "∧", Some(Formula.And(a, b)), Holds("∧.I", List("∧.I")), Holds("∧.E", List("∧.E₁", "∧.E₂"))),
+    Row("sum", "Either", "∨", Some(Formula.Or(a, b)), Holds("∨.I", List("∨.I₁", "∨.I₂")), Holds("∨.E", List("∨.E"))),
+    Row("unit", "Unit", "⊤", Some(Formula.True), Holds("⊤.I", List("⊤.I")), Absent),
+    Row("void", "Nothing", "⊥", Some(Formula.False), Absent, Holds("⊥.E", List("⊥.E"))),
+    Row("hyp", "hyp", "hip.", None, Absent, Holds("Ax", List("Ax")))
   )

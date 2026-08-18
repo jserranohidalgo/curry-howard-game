@@ -81,7 +81,9 @@ One thing still to settle: the release date below. (How a `let` appears to the l
 - [x] Phase 8 · Home: the top bar (ETSII lockup + underline view switch), the shape-glyph language (`Shapes`), the Lucide icon set (`Icons`), five system rows with glyph clusters, and a lede that switches with the view (2026-08-18)
 - [x] Phase 8 · the `EN|ES` switch and the footer's *Cómo se juega* button, both shown **inactive** in their designed places until Phase 9's i18n and Phase 10's Help screen exist (2026-08-18)
 - [x] Phase 8 · Setup: back button, view-dependent title and lede, the field with the parsed goal's shape glyph, the three-state feedback area (grammar chips · positioned error · both notations), and the examples with their notes (2026-08-18)
-- [ ] Phase 8 · Play, Help, Result: still to do, page by page
+- [x] Phase 8 · Play: top-bar counters, the search path's header, the rules table at its designed geometry (88px column, 38px cells, rule name only, red count badge, unfold in place), footer icons, the goal card's dual eyebrow, a multi-line coloured program with shape-glyph hole chips, and resource chips with glyphs and kind labels (2026-08-18)
+- [x] Phase 8 · Play: the rules table's geometry is stable across a play — measured over six positions and both views (2026-08-18)
+- [ ] Phase 8 · Help and the Result overlay: still to do
 - [ ] Phase 8: decide whether a destructor that fills the hole and one that binds an auxiliary `val` should look different inside the same cell — deferred by D24, currently told apart only by the instance's text
 - [ ] Phase 9 — ES/EN, static deploy, classroom trial
 - [ ] Phase 10 — contextual help in the web UI: `?`/`??`/`???` as affordances rather than commands, and the Help screen written against them

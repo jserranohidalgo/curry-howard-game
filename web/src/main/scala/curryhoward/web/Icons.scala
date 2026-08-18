@@ -43,6 +43,18 @@ object Icons:
     S.path(S.d := "M12 16h.01")
   )
 
+  /** `undo-2` — backtracking. */
+  def undo(size: Int = 14): SvgElement = icon(size)(
+    S.path(S.d := "M9 14 4 9l5-5"),
+    S.path(S.d := "M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11")
+  )
+
+  /** `rotate-ccw` — starting the same goal again. */
+  def restart(size: Int = 14): SvgElement = icon(size)(
+    S.path(S.d := "M3 12a9 9 0 1 0 3-6.7L3 8"),
+    S.path(S.d := "M3 3v5h5")
+  )
+
   private def icon(size: Int)(paths: SvgElement*): SvgElement =
     S.svg(
       S.cls := "icon",

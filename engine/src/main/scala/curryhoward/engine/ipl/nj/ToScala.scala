@@ -45,11 +45,36 @@ object ToScala:
   def pieces(t: Lambda, ascribe: Boolean = true): List[Piece] =
     piecesFrom(t, Env.empty, ascribe)
 
-  private def piecesFrom(t0: Lambda, env0: Env, ascribe: Boolean): List[Piece] =
+  /** The same pieces, laid out over several lines.
+    *
+    * A program on one line is a string; a program in a column is something a
+    * player can read a move off. Only the three constructs that *carry* a move
+    * break — a lambda, a `let`, and a case analysis — because those are the
+    * ones whose parts a player thinks about separately. Everything else stays
+    * inline, so an expression never fragments.
+    *
+    * Kept apart from [[pieces]] rather than replacing it: the single-line form
+    * is what the tests assert against, and what a tooltip or a one-line summary
+    * wants.
+    */
+  def formatted(t: Lambda, ascribe: Boolean = true): List[Piece] =
+    piecesFrom(t, Env.empty, ascribe, breaks = true)
+
+  private def piecesFrom(
+      t0: Lambda,
+      env0: Env,
+      ascribe: Boolean,
+      breaks: Boolean = false
+  ): List[Piece] =
     var next = 0
-    def go(t: Lambda, env: Env): List[Piece] =
+    def go(t: Lambda, env: Env, depth: Int = 0): List[Piece] =
       def text(s: String) = List(Piece.Text(s))
       def ann(ty: Formula) = if ascribe then s": ${tpe(ty)}" else ""
+      /** A line break and this much indentation — or a single space, when the
+        * caller wants one line.
+        */
+      def br(at: Int, otherwise: String = " ") =
+        if breaks then "\n" + "  " * at else otherwise
       t match
         case Hole(goal) =>
           val i = next
@@ -62,7 +87,7 @@ object ToScala:
         case Lam(param, body) =>
           val (inner, n) = env.bind(param)
           val binder = if ascribe then s"($n: ${tpe(param._2)})" else n
-          text(s"$binder => ") ++ go(body, inner)
+          text(s"$binder =>" + br(depth + 1)) ++ go(body, inner, depth + 1)
 
         case App(f, arg)      => go(f, env) ++ text("(") ++ go(arg, env) ++ text(")")
         case Pair(a, b)       => text("(") ++ go(a, env) ++ text(", ") ++ go(b, env) ++ text(")")
@@ -74,15 +99,19 @@ object ToScala:
 
         case Let(binder, value, body) =>
           val (inner, n) = env.bind(binder)
-          text(s"val $n${ann(binder._2)} = ") ++ go(value, env) ++ text("; ") ++ go(body, inner)
+          text(s"val $n${ann(binder._2)} = ") ++ go(value, env, depth) ++
+            text(if breaks then br(depth) else "; ") ++ go(body, inner, depth)
 
         case Match(scrutinee, left, onLeft, right, onRight) =>
           val (lEnv, ln) = env.bind(left)
           val (rEnv, rn) = env.bind(right)
-          go(scrutinee, env) ++
-            text(s" match { case Left($ln${ann(left._2)}) => ") ++ go(onLeft, lEnv) ++
-            text(s"; case Right($rn${ann(right._2)}) => ") ++ go(onRight, rEnv) ++
-            text(" }")
+          val open = if breaks then s" match {${br(depth + 1)}" else " match { "
+          val between = if breaks then br(depth + 1) else "; "
+          val close = if breaks then br(depth) else " "
+          go(scrutinee, env, depth) ++
+            text(s"${open}case Left($ln${ann(left._2)}) => ") ++ go(onLeft, lEnv, depth + 1) ++
+            text(s"${between}case Right($rn${ann(right._2)}) => ") ++ go(onRight, rEnv, depth + 1) ++
+            text(s"$close}")
 
     go(t0, env0)
 

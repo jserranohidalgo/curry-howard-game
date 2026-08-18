@@ -23,7 +23,7 @@ object Derivation:
       case Hyp(label, formula) =>
         div(
           cls := "fig-leaf mono",
-          span(cls := "fig-hyp", s"[${Notation.logician(formula)}]"),
+          span(cls := "fig-hyp", "[", TypeText.logician(formula), "]"),
           sup(cls := "fig-label", label.toString)
         )
 
@@ -36,7 +36,7 @@ object Derivation:
           assuming.map { (label, formula) =>
             div(
               cls := "fig-leaf mono fig-assumed",
-              span(cls := "fig-hyp", s"[${Notation.logician(formula)}]"),
+              span(cls := "fig-hyp", "[", TypeText.logician(formula), "]"),
               sup(cls := "fig-label", label.toString)
             )
           },
@@ -48,7 +48,7 @@ object Derivation:
             cls := "fig-leaf fig-todo mono",
             cls("selected") := selected.contains(index),
             onClick --> { _ => onHole(index) },
-            Notation.logician(goal)
+            TypeText.logician(goal)
           )
         )
 
@@ -66,7 +66,7 @@ object Derivation:
               else sup(cls := "fig-label", discharges.mkString(","))
             )
           ),
-          div(cls := "fig-concl mono", Notation.logician(conclusion))
+          div(cls := "fig-concl mono", TypeText.logician(conclusion))
         )
 
   /** The facts standing beside the derivation — the logician's reading of the

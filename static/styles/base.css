@@ -277,7 +277,7 @@ button.ghost:focus-visible {
 .home-footer .ghost:disabled { opacity: .5; cursor: not-allowed; }
 
 /* Play */
-.play { display: grid; grid-template-columns: 380px 1fr; min-height: 100vh; }
+.play { display: grid; grid-template-columns: 356px 1fr; min-height: calc(100vh - 60px); }
 .left {
   padding: var(--space-6); background: var(--surface-card);
   border-right: 1px solid var(--border-subtle);
@@ -293,30 +293,87 @@ button.ghost:focus-visible {
   font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
   color: var(--text-muted); margin-bottom: var(--space-2);
 }
-.term-card { font-size: 14px; line-height: 2; overflow-x: auto; }
+.term-card {
+  font-size: 15.5px; line-height: 1.9; overflow-x: auto; padding: 26px 30px;
+  white-space: pre-wrap;                 /* the program is laid out, not reflowed */
+}
+.kw { color: var(--urjc-red-darker); }
+.ctor { color: var(--text-strong); font-weight: var(--fw-semibold); }
+.goal-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
+.accent { color: var(--text-brand); }
+.goal-prop { font-family: var(--font-serif); font-size: 19px; color: var(--text-strong); }
 
 .hole {
-  display: inline-block; white-space: nowrap;   /* a chip never breaks mid-type */
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
   border: 1.5px dashed var(--border-default); border-radius: var(--radius-1);
   padding: 2px 7px; margin: 0 2px; cursor: pointer; background: var(--surface-card);
+  font-size: 14px;
 }
 .hole:hover { border-color: var(--urjc-red); }
 .hole.selected { border: 1.5px solid var(--urjc-red); box-shadow: var(--focus-ring); }
-
-.hint { font-size: 13px; color: var(--text-muted); }
-.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.chip {
-  display: flex; gap: var(--space-2); align-items: baseline;
-  border: 1px solid var(--border-subtle); padding: 6px 10px; font-size: 12.5px;
+/* A dead hole: struck through, and deliberately not the selection treatment. */
+.hole.dead {
+  border: 1.5px solid var(--grey-400, var(--border-default)); background: var(--grey-100);
+  color: var(--urjc-red-darker); text-decoration: line-through;
 }
-.kind { font-size: 10px; text-transform: uppercase; color: var(--text-muted); }
 
-/* The rules table: every rule shown, whether or not it applies here. */
-.rules { display: flex; flex-direction: column; gap: 6px; }
-.rules-row { display: grid; grid-template-columns: 68px 1fr 1fr; gap: 6px; align-items: start; }
-.rules-label { font-size: 12px; color: var(--text-muted); padding-top: 8px; }
-.rules-cell { display: flex; flex-direction: column; gap: 4px; }
+.hint {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: 13px; color: var(--text-muted);
+}
+.chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--space-2); }
+.chip {
+  display: flex; gap: var(--space-3); align-items: center;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle); padding: 8px 12px; font-size: 12.5px;
+}
+.chip-body { min-width: 0; flex: 1; }
+.chip-ty { font-size: 11.5px; color: var(--text-muted); }
+.kind { font-size: 10px; text-transform: uppercase; color: var(--text-muted); flex: none; }
 
+/* The two live counters in the bar. */
+.counters { display: flex; align-items: center; gap: 14px; font-size: 12.5px; color: var(--text-muted); }
+.counters strong { color: var(--text-strong); }
+.divider { width: 1px; height: 22px; background: var(--border-subtle); }
+.path-count { font-size: 11px; }
+.path-chevron { color: var(--text-muted); display: flex; }
+
+/* The rules table: the complete I/E table, always fully visible, and of a
+   geometry that never changes — every cell is one fixed-height row showing only
+   the rule name, whether or not it applies here. */
+.rules { display: flex; flex-direction: column; gap: 7px; }
+.rules-row { display: grid; grid-template-columns: 88px 1fr 1fr; gap: 7px; align-items: stretch; }
+.rules-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-body);
+}
+/* One height for every cell, whatever is in it — a stacked cell, an
+   inapplicable one, an absence — so the table never moves under the player. */
+.rules-cell { display: flex; flex-direction: column; min-height: 38px; }
+.cell-wrap { position: relative; display: flex; flex-direction: column; flex: 1; }
+.cell-wrap > .tcell { flex: 1; }
+.panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.panel-head .overline { white-space: nowrap; }
+.panel-head .muted { white-space: nowrap; font-size: 11px; }
+.panel-head .overline { margin-bottom: var(--space-3); }
+
+.tcell {
+  width: 100%; min-height: 38px; display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px; text-align: left; font-size: 12px;
+  border: 1px solid var(--border-subtle); border-left: var(--rule-thick) solid var(--green-600);
+  background: var(--surface-card); color: var(--text-strong);
+  font-weight: var(--fw-semibold); cursor: pointer;
+}
+.tcell.on:hover { border-color: var(--green-600); background: var(--green-tint); }
+/* Not applicable here: the same frame, sunken, with a red rule. */
+.tcell.off {
+  border-left-color: var(--urjc-red-darker); background: var(--surface-subtle);
+  color: var(--text-muted); font-weight: 400; cursor: not-allowed;
+}
+.tcell .count { margin-left: auto; }
+
+/* A cell with several instances shows a count and unfolds in place. */
+.tcell.stack.open { background: var(--green-tint); border-color: var(--green-600); }
 .move {
   display: flex; flex-direction: column; gap: 2px; text-align: left;
   padding: 6px 8px; cursor: pointer;
@@ -327,14 +384,12 @@ button.ghost:focus-visible {
 .move:hover { border-color: var(--green-600); background: var(--green-tint); }
 .move-name { font-size: 12px; color: var(--text-strong); font-weight: var(--fw-semibold); }
 .move-effect { font-size: 10.5px; color: var(--text-muted); }
-
-/* A cell with several instances shows a count and unfolds in place. */
-.cell-wrap { position: relative; }
-.move.stack { flex-direction: row; align-items: center; justify-content: space-between; }
-.move.stack.open { background: var(--green-tint); border-color: var(--green-600); }
 .count {
+  position: absolute; top: -7px; right: -7px; z-index: 2;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: var(--fw-semibold); line-height: 1;
-  padding: 3px 5px; color: var(--text-inverse); background: var(--green-600);
+  color: var(--text-inverse); background: var(--urjc-red);
 }
 .cell-menu {
   position: absolute; z-index: 10; top: calc(100% + 4px); left: 0;
@@ -347,13 +402,11 @@ button.ghost:focus-visible {
 /* The destruct column sits at the panel's right edge — open inwards there. */
 .rules-cell:last-child .cell-menu { left: auto; right: 0; }
 
-.inapplicable, .absent {
-  min-height: 34px; display: flex; align-items: center; justify-content: center;
+/* No such rule exists: an absence, not a state — so no frame at all. */
+.absent {
+  min-height: 38px; flex: 1; display: flex; align-items: center; justify-content: center;
   font-size: 12px; color: var(--grey-300);
-  border: 1px solid var(--border-subtle); background: var(--surface-subtle);
-  border-left: var(--rule-thick) solid var(--urjc-red-darker);
 }
-.absent { border: none; background: none; color: var(--grey-300); }
 
 /* The search path: every position explored, and the way back to any of them. */
 .search-path { margin-bottom: var(--space-5); }
