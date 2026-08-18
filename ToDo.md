@@ -85,6 +85,8 @@ One thing still to settle: the release date below. (How a `let` appears to the l
 - [x] Phase 8 · Play: the rules table's geometry is stable across a play — measured over six positions and both views (2026-08-18)
 - [ ] Phase 8 · Help and the Result overlay: still to do
 - [ ] Phase 8: decide whether a destructor that fills the hole and one that binds an auxiliary `val` should look different inside the same cell — deferred by D24, currently told apart only by the instance's text
+- [ ] Phase 8B — arguments, not only tautologies: open at `Γ ⊢ C`, a syntax for premises in both notations, undischarged assumptions in the figure, premises in the saved game
+- [ ] Phase 8C — other languages (Haskell, Rust) as further interpretations of a derivation, and a textual (numbered-line) rendering of the proof beside the figure
 - [ ] Phase 9 — ES/EN, static deploy, classroom trial
 - [ ] Phase 10 — contextual help in the web UI: `?`/`??`/`???` as affordances rather than commands, and the Help screen written against them
 

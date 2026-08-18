@@ -262,6 +262,29 @@ Recreate the handoff faithfully across every screen, in Laminar and hand-written
 
 *Depends on:* Phases 5–7. *Done when:* each screen matches its reference screenshot, and the rules table's geometry is provably stable across a whole game.
 
+## Phase 8B — Arguments, not only tautologies
+
+The game as built proves **theorems**: it opens at `⊢ C`, with nothing in scope, and the only way anything gets into scope is by playing a move. But most of what a logic course actually sets is an **argument** — *from these premises, derive this conclusion* — and under the correspondence that is exactly a program that **takes arguments**: `def solution(p: P, pq: P ⟶ Q): Q`. The two readings stay in step, as ever: a premise is a parameter, and using a premise is using a parameter.
+
+What it needs, in order of depth:
+
+- **The engine already does it.** A position is a `Sequent(ant, con)`, and only `Sequent.initial` insists the antecedent is empty. Opening at `Γ ⊢ C` is a different starting position, not a different game — the rules, the search, the exhaustion check and the type checker are untouched. This is the cheapest phase in the plan for what it adds.
+- **A syntax, and a parser for it.** Two, in fact, since the game has two notations: `p, p ⟶ q ⊢ q` for the logician, and a signature with parameters for the programmer. Note the trap the programmer's side sets: `(P, Q) => C` already means *one* argument that is a pair, so premises must be written as parameters — `(p: P, q: Q): C` — and the printer must keep the distinction visible. Round-trip properties as in Phase 3.
+- **Two things to render.** The goal card shows premises and conclusion rather than one formula, and the finished program is a `def` with a parameter list. The derivation gains **undischarged assumptions**: a premise is drawn *unbracketed* at the top of the figure, and never discharged — which is precisely the standard notation for the difference between an argument and a theorem, and a real lesson to have on screen. The `let`-bound facts on the shelf are unaffected.
+- **Persistence** carries the premises: `Save` writes the goal line, and that line becomes a sequent.
+
+*Depends on:* Phase 3's parser and Phase 7's renderer. *Done when:* `p, p ⟶ q ⊢ q` can be played from Setup to a win; the figure shows `p` and `p ⟶ q` unbracketed at its leaves and `→I` nowhere; the program reads `def solution(p: P, pq: P => Q): Q = pq(p)`; and a saved argument reloads with its premises.
+
+## Phase 8C — Other languages, and a textual derivation
+
+Two independent widenings, both of the *rendering* rather than of the game.
+
+**Other programming languages.** The object language is Scala because the engine and the course are (D8), but nothing in the engine is: `ToScala` is one interpretation of a derivation, and **Haskell** and **Rust** are two more. The correspondence is what makes this worth doing rather than a gimmick — the same proof read three ways shows a student what is essential (the structure) and what is incidental (the syntax). Each language is one file, and the work is in what does *not* translate cleanly: Haskell has `Either`/`case … of` and no `._1`, so a pair elimination is a pattern match; Rust has `Result`/`match`, ownership rules that make a resource used twice a real question, and no currying by default. Those frictions are the interesting part, not a reason to avoid them. The view switch grows a third setting, or the programmer view grows a language menu.
+
+**A textual derivation.** The logician view draws a Gentzen figure (D25), which is the right default and the wrong thing on a narrow screen or in a screen reader. A **textual** natural-deduction proof — numbered lines, each with its formula, its rule, and the lines it cites, in the Fitch or Suppes–Lemmon manner, with discharge shown by indentation or by the citation — says the same thing linearly. It is also the notation many courses actually teach in, so this is not only an accessibility fallback. `Figure` is already the structure both renderings fold over; `Figure.ascii` is a third, and the tests use it.
+
+*Depends on:* Phase 7. *Done when:* the same finished play renders as Scala, Haskell and Rust, all three type-checking by inspection against the goal; and the derivation renders both as a figure and as a numbered textual proof, from one `Figure`.
+
 ## Phase 9 — Release
 
 Spanish and English throughout, per D14 — interface, engine-generated move labels, parser errors, and `document.documentElement.lang`. The keyboard behaviour the design specifies (`Enter` submits, `Esc` dismisses and never confirms) as part of design fidelity, not as an accessibility commitment: per D18a there is none. Then build to static files, deploy, and run it with students.
