@@ -928,6 +928,7 @@ object App:
     val goal = m.goal.get
     val term = ToLambda.complete(m.position.get).get
     val params = if goal.tyParams.isEmpty then "" else goal.tyParams.mkString("[", ", ", "]")
+    val atoms = Code.atomsOf(goal)
 
     div(
       cls := "scrim",
@@ -947,9 +948,19 @@ object App:
         else
           div(
             div(cls := "eyebrow", "Como lo construiste"),
-            pre(cls := "mono", ToScala(term)),
+            pre(cls := "mono code", Code(ToScala.plain(ToScala.formatted(term)), atoms)),
             div(cls := "eyebrow", "Limpio"),
-            pre(cls := "mono", s"def solution$params = ${ToScala.bare(Cleanup.simplify(term))}")
+            pre(
+              cls := "mono code",
+              // §4.9's own last step: the scaffolding goes, and *one* type
+              // annotation stays — the type of the original hole. Everything
+              // else the compiler infers.
+              Code(
+                s"def solution$params: ${Notation.programmer(goal.formula)} =\n  " +
+                  ToScala.plain(ToScala.formatted(Cleanup.simplify(term), ascribe = false)).replace("\n", "\n  "),
+                atoms
+              )
+            )
           ),
         div(
           cls := "dialog-actions",

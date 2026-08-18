@@ -91,6 +91,46 @@ class GameSuite extends FunSuite:
     assertEquals(TypeCheck.check(term, distributivity), Right(()))
   }
 
+  test("the program is laid out as Scala, and a `val` in an expression position gets a block") {
+    // A forward move inside `Right(…)` puts a binding where only expressions
+    // go. Rendered flat it is not Scala at all — `Right(val p = pqr._1; …)`
+    // does not compile — so the block is a correctness question, not taste.
+    val played = GameTree
+      .start(distributivity)
+      .take("⟶.I")
+      .takeLet(Q \/ R)
+      .take("∧.E₂")
+      .take("∨.E")
+      .take("∨.I₁")
+      .take("∧.I")
+      .take("∧.E₁")
+      .take("Ax")
+      .take("∨.I₂")
+      .takeLet(P)
+      .take("∧.E₁")
+      .take("∧.I")
+      .take("Ax")
+      .take("Ax")
+
+    val term = ToLambda.complete(played.current.position).getOrElse(fail("expected a finished term"))
+    assertEquals(
+      ToScala.plain(ToScala.formatted(term)),
+      """|(pqr: (P, Either[Q, R])) =>
+         |  val qr: Either[Q, R] = pqr._2
+         |  qr match {
+         |    case Left(q: Q) => Left((pqr._1, q))
+         |    case Right(r: R) => Right {
+         |      val p: P = pqr._1
+         |      (p, r)
+         |    }
+         |  }""".stripMargin
+    )
+
+    // And the same term on one line, which is what a tooltip wants and what
+    // the other tests assert against — the two renderings are one traversal.
+    assert(ToScala(term).linesIterator.size == 1)
+  }
+
   test("§4.9's final step: the cleaned-up program") {
     // The specification's own last move — drop the scaffolding, keep one type
     // annotation. The `val qr` is used exactly once, so it inlines; a binding
