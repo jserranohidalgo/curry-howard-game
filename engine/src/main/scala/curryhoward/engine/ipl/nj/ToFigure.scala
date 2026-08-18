@@ -67,7 +67,17 @@ object ToFigure:
     Option.when(position.isComplete)(apply(position))
 
   private def go(p: Partial, env: Env, st: St): (Figure, St) = p match
-    case Open(hole) => (Todo(st.nextHole, hole.con), st.copy(nextHole = st.nextHole + 1))
+    // An open leaf carries the hypotheses in force at it — `[A]ⁿ [B]ᵐ ⋮ C`,
+    // which is §3.1's own notation for a subderivation not yet written out.
+    // Without them a discharge label on a rule below points at nothing the
+    // player can see, and the moment a branch grows any structure the
+    // hypothesis would vanish from the figure entirely. Once the branch is
+    // finished there are no open leaves left, so the annotations disappear and
+    // what remains is the plain figure, with each hypothesis drawn where it is
+    // used.
+    case Open(hole) =>
+      val (held, st1) = hypotheses(hole, env, st)
+      (Todo(st1.nextHole, hole.con, held), st1.copy(nextHole = st1.nextHole + 1))
 
     case Node(rule) =>
       rule match
@@ -104,7 +114,7 @@ object ToFigure:
           (
             Infer(
               "∨E",
-              List(major, assuming(leftFig, leftLabel, a), assuming(rightFig, rightLabel, b)),
+              List(major, leftFig, rightFig),
               leftFig.conclusion,
               List(leftLabel, rightLabel)
             ),
@@ -116,7 +126,7 @@ object ToFigure:
           val (label, st1) = st.label(v)
           val (bodyFig, st2) = go(body, env, st1)
           (
-            Infer("→I", List(assuming(bodyFig, label, a)), Formula.Implies(a, bodyFig.conclusion), List(label)),
+            Infer("→I", List(bodyFig), Formula.Implies(a, bodyFig.conclusion), List(label)),
             st2
           )
 
@@ -143,14 +153,21 @@ object ToFigure:
 
         case other => (Todo(-1, conclusionOf(other)), st) // unreachable: every rule is above
 
-  /** Note the hypothesis a rule has just discharged over an *empty* branch, so
-    * that `[A]ⁿ ⋮ C` is drawn rather than a bare hole. Once the branch has any
-    * structure the hypothesis shows up where it is actually used, as a leaf,
-    * which is how a finished figure reads.
+  /** What may be assumed at a hole: every resource in scope that is a
+    * *hypothesis* — bound by `→I` or `∨E`, and discharged further down — in the
+    * order they came into force.
+    *
+    * A `let`-bound resource is deliberately not here. It is not an assumption
+    * but a fact with a derivation behind it, and it is shown as one, beside the
+    * tree (D25).
     */
-  private def assuming(figure: Figure, label: Int, formula: Formula): Figure = figure match
-    case Todo(index, goal, held) => Todo(index, goal, held :+ (label, formula))
-    case other                   => other
+  private def hypotheses(hole: Sequent, env: Env, st: St): (List[(Int, Formula)], St) =
+    hole.ant.reverse.foldLeft((List.empty[(Int, Formula)], st)) { case ((held, acc), (v, f)) =>
+      if env.contains(v) then (held, acc)
+      else
+        val (label, next) = acc.label(v)
+        (held :+ (label, f), next)
+    }
 
   /** The derivation standing behind a resource.
     *

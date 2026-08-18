@@ -109,6 +109,40 @@ class FigureSuite extends FunSuite:
       case other => fail(s"expected →I over ∨E, got $other")
   }
 
+  test("a case hypothesis stays visible once its branch has structure") {
+    // Play ∨I₁ inside the left branch: the branch is no longer a bare hole, and
+    // [q]² must not vanish with it — the ∨E below still discharges that label,
+    // and a label pointing at nothing on screen is worse than no label.
+    val played = GameTree
+      .start(distributivity)
+      .take("⟶.I")
+      .takeLet(Q \/ R)
+      .take("∧.E₂")
+      .take("∨.E")
+      .take("∨.I₁")
+
+    val leaves = ToFigure(played.current.position).main match
+      case fig => collectTodos(fig)
+
+    val inTheLeftBranch = leaves.find(_.goal == (P /\ Q)).getOrElse(fail("no p ∧ q leaf"))
+    assertEquals(
+      inTheLeftBranch.assuming.map((n, f) => (n, Notation.logician(f))),
+      List(1 -> "p ∧ (q ∨ r)", 2 -> "q"),
+      "both hypotheses in force are drawn over the leaf"
+    )
+    // The disjunction is a derived *fact*, not a hypothesis: it belongs on the
+    // shelf, and never appears bracketed.
+    assert(
+      !inTheLeftBranch.assuming.exists((_, f) => f == (Q \/ R)),
+      "a let-bound resource is not an assumption"
+    )
+  }
+
+  private def collectTodos(fig: Figure): List[Figure.Todo] = fig match
+    case Figure.Infer(_, premises, _, _) => premises.flatMap(collectTodos)
+    case t @ Figure.Todo(_, _, _)        => List(t)
+    case _                               => Nil
+
   // --- The finished proof -----------------------------------------------------
 
   private val won: GameTree =
