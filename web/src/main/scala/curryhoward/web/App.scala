@@ -31,6 +31,7 @@ object App:
   def apply(): HtmlElement =
     div(
       cls := "app",
+      child <-- model.signal.map(topBar),
       child <-- model.signal.map(render),
       // `Esc` dismisses a dialog and never confirms — the interaction spec is
       // explicit, and it is the one keyboard behaviour that ships (D18a).
@@ -38,7 +39,7 @@ object App:
     )
 
   private def render(m: Model): HtmlElement = m.screen match
-    case Screen.Home  => home
+    case Screen.Home  => home(m)
     case Screen.Setup => setup(m)
     case Screen.Play =>
       // The three endings of §6.2, in the order they are decided: a solution
@@ -48,27 +49,97 @@ object App:
       else if m.refuted then lost(m)
       else play(m)
 
+  // --- The chrome -----------------------------------------------------------
+
+  /** The bar across every screen: the institutional lockup, and the switch
+    * between the two readings.
+    *
+    * The switch lives here rather than in the Play screen's column, as the
+    * handoff has it — it belongs to the application, not to one screen, and on
+    * Home it already changes something: which way round the lede tells you the
+    * correspondence.
+    */
+  private def topBar(m: Model): HtmlElement =
+    div(
+      cls := "topbar",
+      img(
+        cls := "brand-lockup",
+        src := "./assets/logo-etsii.svg",
+        alt := "Universidad Rey Juan Carlos — Escuela Técnica Superior de Ingeniería Informática"
+      ),
+      div(cls := "topbar-spacer"),
+      viewSwitch(m)
+    )
+
   // --- Home -----------------------------------------------------------------
 
-  private def home: HtmlElement =
+  /** The systems on offer: each a logic paired with the language whose programs
+    * are its proofs. Only IPL is playable; the rest are listed on a par, so the
+    * roadmap is legible from the first screen.
+    */
+  private val systems: List[(String, String, List[HtmlElement], Boolean)] = List(
+    (
+      "Lógica intuicionista proposicional",
+      "Cálculo lambda con tipos simples y tipos de datos algebraicos",
+      List(
+        div(Shapes.glyph(Formula.Implies(atomA, atomB))),
+        div(Shapes.glyph(Formula.And(atomA, atomB))),
+        div(Shapes.glyph(Formula.Or(atomA, atomB)))
+      ),
+      true
+    ),
+    (
+      "Lógica clásica proposicional",
+      "Cálculo λμ — continuaciones de primera clase (call/cc)",
+      List(div(Shapes.glyph(Formula.Implies(atomA, atomB))), div(Shapes.glyph(Formula.False))),
+      false
+    ),
+    (
+      "Lógica intuicionista de primer orden",
+      "Cálculo lambda con tipos dependientes (λΠ)",
+      List(span(cls := "start-sym mono", "∀∃")),
+      false
+    ),
+    (
+      "Lógica clásica de primer orden",
+      "Cálculo λμ con tipos dependientes",
+      List(span(cls := "start-sym mono", "∀¬")),
+      false
+    ),
+    (
+      "Lógica lineal multiplicativa",
+      "Cálculo lambda lineal — cada recurso se usa exactamente una vez",
+      List(span(cls := "start-sym mono", "⊗⊸")),
+      false
+    )
+  )
+
+  private def atomA = Formula.Atom("A")
+  private def atomB = Formula.Atom("B")
+
+  private def home(m: Model): HtmlElement =
     div(
       cls := "sheet",
       img(cls := "hero-mark", src := "./assets/logo-urjc.svg", alt := "URJC"),
       h1(cls := "title", "The Curry–Howard Game"),
       p(cls := "tagline", "Construir un programa y demostrar un teorema son el mismo movimiento."),
+      // The lede tells the correspondence from whichever end you are standing
+      // at — which is the first thing the view switch does.
       p(
         cls := "lede",
-        "Parte de un hueco con un tipo y ve rellenándolo con constructores y destructores. ",
-        "Cuando no queden huecos, tendrás un programa — y con él, una demostración."
+        if m.view.isLogician then
+          "Parte de un objetivo con una obligación abierta y ve descargándola con reglas " +
+            "de introducción y eliminación. Cuando no quede ninguna, tendrás una demostración " +
+            "— y con ella, un programa."
+        else
+          "Parte de un hueco con un tipo y ve rellenándolo con constructores y destructores. " +
+            "Cuando no queden huecos, tendrás un programa — y con él, una demostración."
       ),
       resumeBanner,
-      p(cls := "overline", "Empezar"),
+      p(cls := "overline", "Empezar partida"),
       div(
         cls := "systems",
-        systemRow("Lógica proposicional intuicionista", "λ simplemente tipado con tipos algebraicos", true),
-        systemRow("Lógica proposicional clásica", "λμ — continuaciones", false),
-        systemRow("Lógica de primer orden", "λΠ — tipos dependientes", false),
-        systemRow("Lógica lineal multiplicativa", "λ lineal", false)
+        systems.map((logic, language, glyphs, active) => systemRow(logic, language, glyphs, active))
       )
     )
 
@@ -101,14 +172,21 @@ object App:
           )
         )
 
-  private def systemRow(logic: String, language: String, active: Boolean): HtmlElement =
+  private def systemRow(
+      logic: String,
+      language: String,
+      glyphs: List[HtmlElement],
+      active: Boolean
+  ): HtmlElement =
     button(
       cls := "start-btn",
       cls("inactive") := !active,
       disabled := !active,
       onClick.filter(_ => active) --> { _ => edit(_.copy(screen = Screen.Setup)) },
-      div(span(cls := "system-logic", logic), span(cls := "system-language", language)),
-      if active then span(cls := "arrow", "→") else span(cls := "soon", "Próximamente")
+      div(cls := "start-glyphs", glyphs),
+      div(cls := "start-body", span(cls := "system-logic", logic), span(cls := "system-language", language)),
+      if active then span(cls := "arrow", Icons.arrowRight())
+      else span(cls := "soon", "Próximamente")
     )
 
   // --- Setup ----------------------------------------------------------------
@@ -177,7 +255,6 @@ object App:
       cls := "play",
       div(
         cls := "left",
-        viewSwitch(m),
         searchPath(m),
         h3(cls := "overline", "Movimientos"),
         movesPanel(m),

@@ -132,6 +132,28 @@ button.ghost:focus-visible {
   color: var(--text-strong);
 }
 
+/* The shape language's colours: derived from the system's own hues, never
+   invented — the three atoms reuse the status colours. */
+:root {
+  --shape-ink: var(--grey-700);
+  --shape-fill: var(--grey-100);
+  --atom-P: var(--amber-600);  --atom-P-soft: var(--amber-tint);
+  --atom-Q: var(--blue-600);   --atom-Q-soft: var(--blue-tint);
+  --atom-R: var(--green-600);  --atom-R-soft: var(--green-tint);
+}
+.glyph { display: block; flex: none; }
+.icon { display: block; }
+
+/* The bar across every screen: institutional lockup, then the view switch. */
+.topbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 18px;
+  height: 60px; padding: 0 22px;
+  background: var(--surface-card); border-bottom: 1px solid var(--border-subtle);
+}
+.brand-lockup { height: 30px; width: auto; display: block; }
+.topbar-spacer { flex: 1; }
+
 /* --- Phase 4: the vertical slice -----------------------------------------
    Built on the URJC tokens, but deliberately not the designed interface —
    Phase 8 recreates that against the reference screenshots. What matters
@@ -154,7 +176,7 @@ button.ghost:focus-visible {
 .systems { display: flex; flex-direction: column; gap: var(--space-2); }
 
 .start-btn {
-  display: flex; align-items: center; justify-content: space-between; gap: 15px;
+  display: flex; align-items: center; gap: 15px;
   padding: 15px 18px; text-align: left;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
@@ -167,9 +189,18 @@ button.ghost:focus-visible {
   border-left-color: var(--border-subtle); opacity: .62; cursor: not-allowed;
 }
 .start-btn.inactive:hover { box-shadow: none; transform: none; opacity: .78; }
-.system-logic { display: block; font: var(--type-ui); color: var(--text-strong); }
-.system-language { display: block; font-size: 11.5px; color: var(--text-muted); }
-.arrow { color: var(--urjc-red); font-size: 18px; }
+/* A fixed glyph cluster keeps every row's text on the same left edge. */
+.start-glyphs {
+  min-width: 68px; display: flex; align-items: center; gap: 5px; flex: none;
+}
+.start-sym { font-size: 17px; color: var(--text-muted); }
+.start-body { flex: 1; min-width: 0; }
+.system-logic {
+  display: block; font-family: var(--font-display); font-weight: var(--fw-semibold);
+  font-size: 15px; color: var(--text-strong);
+}
+.system-language { display: block; font-size: 11.5px; line-height: 1.5; color: var(--text-muted); }
+.arrow { color: var(--urjc-red); display: flex; flex: none; }
 .soon {
   font-size: 10px; text-transform: uppercase; letter-spacing: .1em;
   border: 1px solid var(--border-default); border-radius: var(--radius-pill);
@@ -354,15 +385,18 @@ button.ghost:focus-visible {
 
 /* --- Phase 7: the logician view ------------------------------------------- */
 
-.view-switch { display: flex; gap: 0; margin-bottom: var(--space-5); }
+/* The view switch: a squared segmented control whose active tab is marked by a
+   3px red underline — no pill and no fill, which is the brand's signature for
+   "this is where you are" rather than "this is a button". */
+.view-switch { display: flex; gap: 0; }
 .seg {
-  flex: 1; padding: 7px 10px; font: var(--type-ui); cursor: pointer;
-  background: var(--surface-card); border: 1px solid var(--border-default);
+  padding: 8px 14px 7px; font: var(--type-ui); cursor: pointer;
+  background: none; border: none; border-bottom: var(--rule-thick) solid transparent;
   color: var(--text-muted);
 }
-.seg + .seg { border-left: none; }
+.seg:hover { color: var(--text-strong); }
 .seg.on {
-  background: var(--urjc-red); border-color: var(--urjc-red); color: var(--text-inverse);
+  color: var(--text-brand); border-bottom-color: var(--urjc-red);
   font-weight: var(--fw-semibold);
 }
 

@@ -121,3 +121,5 @@ Chronological record of files added to the bundle, maintained automatically by `
 - added `engine/src/main/scala/curryhoward/engine/ipl/nj/ToFigure.scala`
 - added `engine/src/test/scala/curryhoward/engine/FigureSuite.scala`
 - added `web/src/main/scala/curryhoward/web/Derivation.scala`
+- added `web/src/main/scala/curryhoward/web/Icons.scala`
+- added `web/src/main/scala/curryhoward/web/Shapes.scala`
