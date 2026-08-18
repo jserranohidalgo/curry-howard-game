@@ -68,7 +68,22 @@ object App:
         alt := "Universidad Rey Juan Carlos — Escuela Técnica Superior de Ingeniería Informática"
       ),
       div(cls := "topbar-spacer"),
-      viewSwitch(m)
+      viewSwitch(m),
+      langSwitch
+    )
+
+  /** The language switch, shown inactive.
+    *
+    * D14 puts Spanish and English in the first release, and Phase 9 builds the
+    * i18n behind them; until then the control is here, in its designed place,
+    * doing nothing — the project's own rule, leave room and build nothing,
+    * applied to a switch rather than a screen.
+    */
+  private def langSwitch: HtmlElement =
+    div(
+      cls := "seg-group lang",
+      button(cls := "seg-btn", disabled := true, "EN"),
+      button(cls := "seg-btn on", disabled := true, "ES")
     )
 
   // --- Home -----------------------------------------------------------------
@@ -140,7 +155,10 @@ object App:
       div(
         cls := "systems",
         systems.map((logic, language, glyphs, active) => systemRow(logic, language, glyphs, active))
-      )
+      ),
+      // Help is Phase 10's screen. The button stands in its designed place,
+      // inactive, so the shape of the finished screen is honest.
+      div(cls := "home-footer", button(cls := "ghost", disabled := true, "Cómo se juega"))
     )
 
   /** A game left unfinished is offered back, never resumed behind the player's
@@ -195,38 +213,71 @@ object App:
     div(
       cls := "sheet",
       backButton(Screen.Home),
-      h2(cls := "title", "Escribe una signatura"),
-      p(cls := "lede", "O la proposición que le corresponde — son la misma cosa escrita de dos maneras."),
-      input(
-        cls := "goal-input",
-        placeholder := "(A, B) => (B, A)",
-        value := m.input,
-        onInput.mapToValue --> { v => edit(_.copy(input = v)) },
-        onKeyDown.filter(_.key == "Enter").mapTo(()) --> { _ => begin() }
+      h2(
+        cls := "title",
+        if m.view.isLogician then "¿Qué quieres demostrar?" else "¿Qué programa quieres escribir?"
+      ),
+      p(
+        cls := "lede lede-tight",
+        if m.view.isLogician then "Escribe la proposición que quieres demostrar. Se aceptan las dos notaciones."
+        else "Escribe la signatura que quieres habitar. Se aceptan las dos notaciones."
+      ),
+      // The field and the shape of what is in it, framed as one control: the
+      // glyph appears as soon as the goal parses, so the player sees the shape
+      // of the thing before playing a single move.
+      div(
+        cls := "goal-field",
+        cls("invalid") := m.input.nonEmpty && m.parsed.isLeft,
+        input(
+          cls := "goal-input mono",
+          placeholder := (if m.view.isLogician then "a ∧ b → b ∧ a" else "(A, B) => (B, A)"),
+          value := m.input,
+          onInput.mapToValue --> { v => edit(_.copy(input = v)) },
+          onKeyDown.filter(_.key == "Enter").mapTo(()) --> { _ => begin() }
+        ),
+        div(cls := "goal-shape", m.parsed.toOption.map(g => Shapes.glyph(g.formula, 24)).toList)
       ),
       feedback(m),
       button(
         cls := "primary",
         disabled := m.parsed.isLeft,
         onClick --> { _ => begin() },
-        "Empezar"
+        "Empezar partida"
       ),
-      p(cls := "overline", "Ejemplos"),
       div(
-        cls := "examples",
-        Examples.all.map { ex =>
-          button(
-            cls := "example",
-            onClick --> { _ => edit(_.copy(input = ex.programmer)) },
-            span(cls := "mono", ex.programmer),
-            span(cls := "muted", ex.logician)
-          )
-        }
+        cls := "examples-block",
+        p(cls := "overline", "O empieza con un ejemplo"),
+        div(
+          cls := "examples",
+          Examples.all.map { ex =>
+            button(
+              cls := "example",
+              onClick --> { _ =>
+                edit(m => m.copy(input = if m.view.isLogician then ex.logician else ex.programmer))
+              },
+              span(cls := "mono", if m.view.isLogician then ex.logician else ex.programmer),
+              span(cls := "example-note", note(ex.id))
+            )
+          }
+        )
       )
     )
 
+  private def note(id: String): String = id match
+    case "distributivity"  => "distributividad"
+    case "commutativity"   => "conmutatividad — para empezar"
+    case "k"               => "el combinador K"
+    case "transitivity"    => "transitividad"
+    case "excludedMiddle"  => "tercio excluso — aquí no es demostrable"
+    case other             => other
+
   /** The core teaching moment of this screen: the same goal, echoed in both
     * notations at once.
+    */
+  /** Three states in one fixed-height area, so nothing below it ever jumps:
+    * the grammar while the field is empty, the error while it does not parse,
+    * and — the point of the screen — the same goal in *both* notations as soon
+    * as it does.
     */
   private def feedback(m: Model): HtmlElement =
     div(
@@ -234,15 +285,42 @@ object App:
       m.parsed match
         case Right(goal) =>
           div(
-            echoRow("PROGRAMADOR", Notation.programmer(goal.formula)),
-            echoRow("LÓGICO", Notation.logician(goal.formula))
+            echoRow("PROGRAMADOR", TypeText(goal.formula, View.Programmer)),
+            echoRow("LÓGICO", TypeText(goal.formula, View.Logician))
           )
-        case Left(ParseError.Empty) => div(cls := "muted", "Escribe un objetivo.")
+        case Left(ParseError.Empty) => grammarHint
         case Left(err) =>
-          div(cls := "error", s"${describe(err)} (posición ${err.pos})")
+          div(
+            cls := "error",
+            Icons.alert(15),
+            span(describe(err)),
+            span(cls := "muted", s"en la posición ${err.pos}")
+          )
     )
 
-  private def echoRow(label: String, text: String): HtmlElement =
+  /** What the field accepts, in both notations at once — the same lesson the
+    * echo rows teach, taught before there is anything to echo.
+    */
+  private def grammarHint: HtmlElement =
+    div(
+      cls := "hints",
+      List(
+        (List("=>", "->", "→"), "implicación"),
+        (List("(A, B)", "∧", "&"), "conjunción"),
+        (List("Either[A, B]", "∨", "|"), "disyunción"),
+        (List("¬A", "~A", "!A"), "negación"),
+        (List("Unit", "⊤"), "verdad"),
+        (List("Nothing", "⊥"), "falsedad")
+      ).map { (tokens, label) =>
+        div(
+          cls := "hint-item",
+          div(cls := "hint-tokens", tokens.map(t => span(cls := "kbd mono", t))),
+          span(cls := "hint-label", label)
+        )
+      }
+    )
+
+  private def echoRow(label: String, text: HtmlElement): HtmlElement =
     div(cls := "echo", span(cls := "echo-label", label), span(cls := "mono", text))
 
   private def begin(): Unit =
@@ -818,7 +896,12 @@ object App:
   // --- Odds and ends --------------------------------------------------------
 
   private def backButton(to: Screen): HtmlElement =
-    button(cls := "ghost back", onClick --> { _ => edit(_.copy(screen = to)) }, "← Volver")
+    button(
+      cls := "ghost back",
+      onClick --> { _ => edit(_.copy(screen = to)) },
+      Icons.arrowLeft(15),
+      "Volver al inicio"
+    )
 
   private def kind(ty: Formula): String = ty match
     case Formula.And(_, _)     => "par"

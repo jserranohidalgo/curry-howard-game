@@ -79,9 +79,9 @@ One thing still to settle: the release date below. (How a `let` appears to the l
 - [x] Decided how a `let` appears to the logician: the view is a forest — a main derivation plus derived facts, grafted where used (D25, 2026-08-18). The premise that decided it: every interface move must show progress in both views (2026-08-18)
 - [ ] Phase 8 — recreate the designed UI across all screens against the reference screenshots
 - [x] Phase 8 · Home: the top bar (ETSII lockup + underline view switch), the shape-glyph language (`Shapes`), the Lucide icon set (`Icons`), five system rows with glyph clusters, and a lede that switches with the view (2026-08-18)
-- [ ] Phase 8 · Home: the `EN|ES` switch the design puts in the top bar — nothing to attach it to until Phase 9's i18n
-- [ ] Phase 8 · Home: the footer's *Cómo se juega* ghost button — nothing to link to until the Help screen (Phase 10)
-- [ ] Phase 8 · Setup, Play, Help, Result: still to do, page by page
+- [x] Phase 8 · the `EN|ES` switch and the footer's *Cómo se juega* button, both shown **inactive** in their designed places until Phase 9's i18n and Phase 10's Help screen exist (2026-08-18)
+- [x] Phase 8 · Setup: back button, view-dependent title and lede, the field with the parsed goal's shape glyph, the three-state feedback area (grammar chips · positioned error · both notations), and the examples with their notes (2026-08-18)
+- [ ] Phase 8 · Play, Help, Result: still to do, page by page
 - [ ] Phase 8: decide whether a destructor that fills the hole and one that binds an auxiliary `val` should look different inside the same cell — deferred by D24, currently told apart only by the instance's text
 - [ ] Phase 9 — ES/EN, static deploy, classroom trial
 - [ ] Phase 10 — contextual help in the web UI: `?`/`??`/`???` as affordances rather than commands, and the Help screen written against them

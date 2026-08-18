@@ -37,6 +37,12 @@ object Icons:
     S.path(S.d := "m6 6 12 12")
   )
 
+  def alert(size: Int = 15): SvgElement = icon(size)(
+    S.circle(S.cx := "12", S.cy := "12", S.r := "10"),
+    S.path(S.d := "M12 8v4"),
+    S.path(S.d := "M12 16h.01")
+  )
+
   private def icon(size: Int)(paths: SvgElement*): SvgElement =
     S.svg(
       S.cls := "icon",
