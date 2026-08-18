@@ -20,6 +20,27 @@ As you work, keep `ToDo.md` current: add new pending items, and move finished it
 
 Do not leave substantive results only in the conversation. Analyses, surveys, findings, and decisions belong in the repository, as OKF docs in the area they concern. Persist the *full* result, not a condensed version; if a chat summary is richer than what you wrote to a file, the file is wrong. This is the analyze-once principle applied to every kind of output.
 
+## How to work here
+
+Two habits that this project has paid for the hard way. Both are harness-neutral: they describe what to do, not what to do it with.
+
+### Check it, do not reason about it
+
+**A claim about behaviour goes into the repository only after it has been observed.** Not deduced from the code, not inferred from a diff — run it.
+
+- **Engine work** is checked by tests, and the interesting ones are properties rather than examples: the parser round-trips in both notations, the save round-trips over random plays with jumps, the game never refutes a theorem, what the game finishes LJT proves. `sbt engineJVM/test`.
+- **UI work is checked by driving a real browser.** Build with `sbt distDev`, serve `dist/` (`python3 -m http.server`), start a browser with remote debugging enabled, then script it over the DevTools protocol: click the actual controls, type into the actual field, read back the DOM, and capture screenshots. The scripts are throwaway and belong in a scratch directory, not in the repository.
+
+This is not ceremony. It has caught, among others: a move rendering `v1 match` instead of `qr match`, because the effect was built outside the selected hole's naming environment; a stylesheet block that silently failed to apply; a rules-table row shifting by two pixels mid-game, which is exactly what Phase 8's exit criterion forbids; a dead-end toast left standing underneath the verdict card; and a `let` rendered where Scala does not allow one. None of those was visible by reading.
+
+Two things that will cost you an hour if you rediscover them: a browser may refuse the debugging socket unless remote origins are allowed, and typing into a Laminar-rendered input needs the native value setter plus a synthetic `input` event — assigning `element.value` changes the DOM and tells the application nothing.
+
+### One screen at a time
+
+Interface work goes **screen by screen**: build one, show it, take the correction, commit, and only then start the next. Corrections tend to arrive as a cropped screenshot and one sentence, and they are almost always about a case the happy path never reaches — a discharge label pointing at something no longer on screen, a selection frame drawn around the *missing* derivation instead of the goal it belongs to. Fix them in the same pass rather than filing them: they are cheap while the screen is fresh.
+
+When the design and the built application disagree, see the standing instruction under Phase 8 in [`Roadmap.md`](Roadmap.md).
+
 ## This repository is an Open Knowledge Format bundle
 
 The **whole repository** is an [Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) bundle: markdown files with YAML frontmatter, versioned alongside the material they describe. The **bundle root is the repository root**, so bundle-relative links start from there (e.g. `/src/thing.md`, `/Roadmap.md`).
