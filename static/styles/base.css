@@ -461,18 +461,31 @@ button.ghost:focus-visible {
 
 /* Result */
 .scrim {
-  position: fixed; inset: 0; background: var(--overlay-scrim);
+  position: fixed; inset: 0; z-index: 40; background: rgba(20, 20, 22, .62);
   display: flex; align-items: center; justify-content: center; padding: var(--space-6);
 }
-.result { max-width: 560px; box-shadow: var(--shadow-3); padding: 30px; }
+/* The verdict card: centred, 430px, a 46px circular mark over the verdict —
+   widened only where a program has to be legible in it. */
+.result { width: 100%; max-width: 430px; box-shadow: var(--shadow-3); padding: 30px; text-align: center; }
+.result.win { max-width: 560px; }
+.result-icon {
+  width: 46px; height: 46px; border-radius: 50%; margin: 0 auto 18px;
+  display: grid; place-items: center; color: var(--text-inverse);
+}
+.result.win .result-icon { background: var(--green-600); }
+.result.lost .result-icon { background: var(--urjc-red); }
+.result-title {
+  font-family: var(--font-display); font-size: 19px; font-weight: var(--fw-semibold);
+  letter-spacing: -.014em; margin-bottom: 10px; color: var(--text-strong);
+}
+.result-text { font-size: 13.5px; line-height: 1.6; color: var(--text-muted); margin: 0 0 24px; }
+.result-body { text-align: left; margin-bottom: var(--space-5); }
+.result-goal { font-size: 14px; padding: 10px 0; }
+.result-count { font-size: 12px; }
+.result-alt { width: 100%; margin-top: var(--space-2); }
 .result pre {
   white-space: pre-wrap; font-size: 12.5px; background: var(--surface-subtle);
-  padding: 12px; margin: 0 0 var(--space-4);
-}
-.tick {
-  width: 46px; height: 46px; border-radius: 999px; background: var(--green-tint);
-  color: var(--green-600); display: flex; align-items: center; justify-content: center;
-  font-size: 24px; margin-bottom: var(--space-4);
+  padding: 12px; margin: 0;
 }
 
 /* The negative ending: the same weight as a win, the other verdict. */

@@ -84,7 +84,8 @@ One thing still to settle: the release date below. (How a `let` appears to the l
 - [x] Phase 8 · Play: top-bar counters, the search path's header, the rules table at its designed geometry (88px column, 38px cells, rule name only, red count badge, unfold in place), footer icons, the goal card's dual eyebrow, a multi-line coloured program with shape-glyph hole chips, and resource chips with glyphs and kind labels (2026-08-18)
 - [x] Phase 8 · Play: the rules table's geometry is stable across a play — measured over six positions and both views (2026-08-18)
 - [x] Phase 8 · the program is laid out as idiomatic Scala in both the term card and the result — and a `val` in an expression position gets a block, without which the render was not valid Scala (2026-08-18)
-- [ ] Phase 8 · Help and the Result overlay: still to do
+- [x] Phase 8 · the Result overlay: one verdict card for both endings — 46px circular mark, verdict, paragraph, full-width way out — over the board rather than instead of it (2026-08-18)
+- [ ] Phase 8 · Help: the last screen, and it needs Phase 10's content to be worth building
 - [ ] Phase 8: decide whether a destructor that fills the hole and one that binds an auxiliary `val` should look different inside the same cell — deferred by D24, currently told apart only by the instance's text
 - [ ] Phase 8B — arguments, not only tautologies: open at `Γ ⊢ C`, a syntax for premises in both notations, undischarged assumptions in the figure, premises in the saved game
 - [ ] Phase 8C — other languages (Haskell, Rust) as further interpretations of a derivation, and a textual (numbered-line) rendering of the proof beside the figure

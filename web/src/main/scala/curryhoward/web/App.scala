@@ -45,9 +45,13 @@ object App:
       // The three endings of §6.2, in the order they are decided: a solution
       // beats everything, and refutation is only ever reached with no solution
       // anywhere in the tree.
-      if m.won then won(m)
-      else if m.refuted then lost(m)
-      else play(m)
+      // The board stays on screen underneath: a verdict is *about* something,
+      // and hiding the thing to announce the verdict on it would be an odd way
+      // to end a game.
+      div(
+        play(m),
+        if m.won then won(m) else if m.refuted then lost(m) else emptyNode
+      )
 
   // --- The chrome -----------------------------------------------------------
 
@@ -377,7 +381,11 @@ object App:
         hint(m),
         resourcesCard(m)
       ),
-      if m.deadEnd then deadEndToast(m)
+      // Once the game is over the branch-level advice is moot: a toast telling
+      // you to back out of a line, under a card telling you the game is
+      // finished, is two pieces of advice about different things.
+      if m.won || m.refuted then emptyNode
+      else if m.deadEnd then deadEndToast(m)
       else if m.lineExhausted then exhaustedToast(m)
       else emptyNode,
       m.confirm.fold(emptyNode)(confirmDialog)
@@ -525,25 +533,43 @@ object App:
     */
   private def lost(m: Model): HtmlElement =
     val goal = m.goal.get
+    verdict(
+      kind = "lost",
+      mark = Icons.cross(24),
+      title = "¡Esto no es un teorema!",
+      text =
+        "El espacio de búsqueda de este objetivo era finito y ya se ha explorado por completo. " +
+          "Ningún programa habita este tipo, así que no existe demostración de la proposición.",
+      body = List(
+        div(cls := "eyebrow", if m.view.isLogician then "La proposición" else "La signatura"),
+        div(cls := "mono result-goal", TypeText(goal.formula, m.view)),
+        div(cls := "muted result-count", s"${m.tree.fold(0)(_.size)} posiciones exploradas, todas sin salida.")
+      ),
+      extra = None
+    )
+
+  /** The verdict card, shared by both endings because they are the same kind of
+    * moment: a 46px circular mark, the verdict, a paragraph, whatever is worth
+    * taking away, and one full-width way out.
+    */
+  private def verdict(
+      kind: String,
+      mark: SvgElement,
+      title: String,
+      text: String,
+      body: List[HtmlElement],
+      extra: Option[HtmlElement]
+  ): HtmlElement =
     div(
       cls := "scrim",
       div(
-        cls := "card result",
-        div(cls := "cross", "✗"),
-        h2("¡Esto no es un teorema!"),
-        p(
-          cls := "lede",
-          "Has agotado la búsqueda: no queda ningún movimiento por probar, y ninguno construye el tipo."
-        ),
-        div(cls := "eyebrow", "La signatura que no se puede habitar"),
-        pre(cls := "mono", Notation.programmer(goal.formula)),
-        div(cls := "eyebrow", "Como proposición"),
-        pre(cls := "mono", Notation.logician(goal.formula)),
-        p(
-          cls := "muted",
-          s"${m.tree.fold(0)(_.size)} posiciones exploradas, todas sin salida."
-        ),
-        button(cls := "primary", onClick --> { _ => edit(_ => Model.empty) }, "Nueva partida")
+        cls := s"card result $kind",
+        div(cls := "result-icon", mark),
+        div(cls := "result-title", title),
+        p(cls := "result-text", text),
+        div(cls := "result-body", body),
+        button(cls := "primary", onClick --> { _ => edit(_ => Model.empty) }, "Nueva partida"),
+        extra.toList
       )
     )
 
@@ -929,47 +955,39 @@ object App:
     val term = ToLambda.complete(m.position.get).get
     val params = if goal.tyParams.isEmpty then "" else goal.tyParams.mkString("[", ", ", "]")
     val atoms = Code.atomsOf(goal)
+    val moves = m.tree.fold(0)(_.depth)
 
-    div(
-      cls := "scrim",
-      div(
-        cls := "card result",
-        div(cls := "tick", "✓"),
-        h2("Resuelto"),
-        p(cls := "lede", "El tipo está habitado — y la proposición, demostrada."),
-        // Both readings of the finished play, since the ending is where the
-        // correspondence is easiest to see: one is the program you wrote, the
-        // other the proof you drew — and the `let` has gone from both.
-        if m.view.isLogician then
-          div(
-            div(cls := "eyebrow", "La demostración"),
-            div(cls := "proof-scroll", Derivation(m.forest.get.main, _ => (), None))
-          )
+    verdict(
+      kind = "win",
+      mark = Icons.check(24),
+      title =
+        if m.view.isLogician then "Resuelto: la proposición queda demostrada."
+        else "Resuelto: el tipo está habitado.",
+      text =
+        s"Has rellenado todos los huecos en $moves movimientos. Tienes un programa completo y " +
+          "bien tipado — y, leído del otro modo, una demostración terminada.",
+      // Ours, and kept over the design's bare verdict: the board behind shows
+      // the program as it was *built*; this is §4.9's last step — scaffolding
+      // dropped, one type annotation left — which is the thing worth taking
+      // away. In the logician's reading, the finished figure.
+      body = List(
+        div(cls := "eyebrow", if m.view.isLogician then "La demostración" else "El programa, limpio"),
+        if m.view.isLogician then div(cls := "proof-scroll", Derivation(m.forest.get.main, _ => (), None))
         else
-          div(
-            div(cls := "eyebrow", "Como lo construiste"),
-            pre(cls := "mono code", Code(ToScala.plain(ToScala.formatted(term)), atoms)),
-            div(cls := "eyebrow", "Limpio"),
-            pre(
-              cls := "mono code",
-              // §4.9's own last step: the scaffolding goes, and *one* type
-              // annotation stays — the type of the original hole. Everything
-              // else the compiler infers.
-              Code(
-                s"def solution$params: ${Notation.programmer(goal.formula)} =\n  " +
-                  ToScala.plain(ToScala.formatted(Cleanup.simplify(term), ascribe = false)).replace("\n", "\n  "),
-                atoms
-              )
+          pre(
+            cls := "mono code",
+            Code(
+              s"def solution$params: ${Notation.programmer(goal.formula)} =\n  " +
+                ToScala.plain(ToScala.formatted(Cleanup.simplify(term), ascribe = false)).replace("\n", "\n  "),
+              atoms
             )
-          ),
-        div(
-          cls := "dialog-actions",
-          button(cls := "primary", onClick --> { _ => edit(_ => Model.empty) }, "Nueva partida"),
-          button(
-            cls := "ghost",
-            onClick --> { _ => edit(_.toggleView) },
-            if m.view.isLogician then "Ver el programa" else "Ver la demostración"
           )
+      ),
+      extra = Some(
+        button(
+          cls := "ghost result-alt",
+          onClick --> { _ => edit(_.toggleView) },
+          if m.view.isLogician then "Ver el programa" else "Ver la demostración"
         )
       )
     )
