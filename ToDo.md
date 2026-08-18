@@ -18,9 +18,13 @@ Conventions:
 
 Active focus: **Phase 8 — the designed UI** (recreate the handoff across every screen against the reference screenshots).
 
-Phases 0–4 are done, plus the console client and Phase 10's contextual help, which ran ahead of the plan. The game is playable two ways: `sbt distDev` and serve `dist/` for the browser, `sbt repl/run` for the console. Phase 0's decisions are in [Roadmap.md](Roadmap.md); the scope they set is in [README.md](README.md); the engine is `engine/src/main/scala/curryhoward/engine/` (`ipl/` shared, `ipl/nj/` the game's calculus, `ipl/ljt/` the oracle).
+**Where to pick up (2026-08-18).** Phases 0–7 are done and Phase 8 is three screens in: Home, Setup, Play and the Result overlay are recreated against the reference screenshots; **Help is the only screen left**, and it is the one that should probably wait — the design's six numbered steps are prose that Phase 10 (`?`/`??`/`???`) has to write anyway, so building the layout now means writing the words twice. Either do Phase 10 first and Help with it, or build Help as layout against placeholder prose. That decision is open.
 
-One thing still to settle: the release date below. (How a `let` appears to the logician is answered — D25.)
+Two rules set by hand this session, worth keeping: **where the mockup and what we have now disagree, what we have wins** (Phase 8's standing instruction), and a control the design has but nothing yet stands behind — the `EN|ES` switch, Help's button — is shown **inactive in its designed place** rather than omitted.
+
+The game is playable two ways: `sbt distDev` and serve `dist/` for the browser, `sbt repl/run` for the console. UI work is checked by driving headless Chrome over the DevTools protocol and screenshotting, not by eye — that is how the table's fixed geometry, the composite forward move and both endings were verified. Phase 0's decisions are in [Roadmap.md](Roadmap.md); the scope they set is in [README.md](README.md); the engine is `engine/src/main/scala/curryhoward/engine/` (`ipl/` shared, `ipl/nj/` the game's calculus, `ipl/ljt/` the oracle, `nj/Figure.scala` + `nj/ToFigure.scala` the logician's reading, `nj/Save.scala` persistence).
+
+Still to settle: the release date below — and it now has more to weigh, since Phases 8B (arguments) and 8C (other languages, textual derivation) were added after it was set.
 
 **Open from Phase 0**
 
