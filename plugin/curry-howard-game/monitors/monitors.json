@@ -1,0 +1,14 @@
+[
+  {
+    "name": "curry-howard-game",
+    "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/curry-howard-game/scripts/serve.py\" --events --replace --out \"${CLAUDE_PLUGIN_DATA}/runtime\"",
+    "description": "Curry–Howard game: every move, backtrack, claim and ending",
+    "when": "on-skill-invoke:curry-howard-game"
+  },
+  {
+    "name": "curry-howard-game-qualified",
+    "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/curry-howard-game/scripts/serve.py\" --events --replace --out \"${CLAUDE_PLUGIN_DATA}/runtime\"",
+    "description": "Curry–Howard game: every move, backtrack, claim and ending",
+    "when": "on-skill-invoke:curry-howard-game:curry-howard-game"
+  }
+]

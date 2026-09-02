@@ -1,0 +1,13 @@
+{
+  "name": "curry-howard-game",
+  "displayName": "Curry–Howard Game",
+  "version": "0.1.0",
+  "description": "Play the Curry–Howard game with a tutor at your elbow: the game opens in your own browser and Claude follows the position move by move.",
+  "author": {
+    "name": "Juan Manuel Serrano"
+  },
+  "license": "MIT",
+  "experimental": {
+    "monitors": "./monitors/monitors.json"
+  }
+}

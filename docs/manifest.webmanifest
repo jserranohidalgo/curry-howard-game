@@ -1,0 +1,32 @@
+{
+  "name": "The Curry–Howard Game",
+  "short_name": "Curry–Howard",
+  "description": "Un juego para aprender lógica y programación a través de la correspondencia de Curry–Howard.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#f7f7f8",
+  "theme_color": "#e90129",
+  "icons": [
+    {
+      "src": "./assets/icon-x.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icon-x-disc-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./assets/icon-x-disc-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
