@@ -1,7 +1,8 @@
-# Image credits
+# Credits
 
-Every image the game shows, where it came from, and under what licence. Nothing
-is fetched while you play: all of it is served from this directory.
+Every image the game shows, where it came from, and under what licence, followed
+by where the goals it offers to play were gathered from. Nothing is fetched while
+you play: all of it is served from this directory.
 
 ## The portraits
 
@@ -37,3 +38,21 @@ to — was drawn for this project and carries no third-party rights.
 `logo-etsii.svg` is the lockup of the Escuela Técnica Superior de Ingeniería
 Informática at the Universidad Rey Juan Carlos, shown in the *About* panel. This
 is not an official application of the university.
+
+## The goals, and the names they go by
+
+The game offers a catalogue of sixty-six goals — theorems, formulas that are
+classically valid but have no constructive proof, and formulas that are not valid
+at all — and shows the name each one goes by beside the field. The formulas and
+their names were gathered from the standard sources; **the classification is the
+game's own**, decided by its two oracles rather than taken from any of them.
+
+| Where | What was taken |
+|---|---|
+| [*Intuitionistic Logic*](https://plato.stanford.edu/entries/logic-intuitionistic/), Joan Moschovakis, Stanford Encyclopedia of Philosophy | The axioms of the intermediate logics: Gödel–Dummett's linearity, Jankov's weak excluded middle (the principle of testability), Kreisel–Putnam, Gödel's chain, Scott's axiom |
+| Wikipedia: [*Tautology*](https://en.wikipedia.org/wiki/Tautology_(logic)), [*List of valid argument forms*](https://en.wikipedia.org/wiki/List_of_valid_argument_forms), [*List of rules of inference*](https://en.wikipedia.org/wiki/List_of_rules_of_inference), [*Consequentia mirabilis*](https://en.wikipedia.org/wiki/Consequentia_mirabilis), [*Formal fallacy*](https://en.wikipedia.org/wiki/Formal_fallacy) | The traditional named argument forms, the laws of the propositional algebra, and the named fallacies |
+| *Principia Mathematica*, Whitehead and Russell | The *praeclarum theorema* (\*3.47) |
+| Combinatory logic, after Schönfinkel and Curry | K, S, W, C and B — the names the programmer's reading gives to five of the theorems |
+
+Names are terms of art and carry no rights; they are credited because a student
+who wants to read more should know where to look.

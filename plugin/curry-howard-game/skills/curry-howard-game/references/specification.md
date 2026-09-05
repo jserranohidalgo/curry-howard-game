@@ -299,10 +299,15 @@ explored tree.
 **Setup.** The goal field takes either notation — a signature to inhabit or a
 proposition to prove — and the grammar chips show how to write each connective in
 the language on the switch. Premises can be added: they are the program's
-parameters. A catalogue of thirty-five classified goals sits on three shelves —
-ones to start with, theorems, and ones with no proof — with two draws beside it,
-*a random theorem* and *something to refute*. The clock and the mode are chosen
-here.
+parameters. Three **draws** sit under the field — *Something to prove*,
+*Something to refute* and *Whatever you get*, the third saying nothing about
+which kind it is — and they draw half from a catalogue of sixty-six classified
+goals and half from a generator. When what is in the field is one of the
+catalogue's goals, its **name** appears to the right of the field: *Peirce's
+law*, *modus tollens*, *De Morgan, negating a conjunction*. The name is matched
+up to a renaming of the letters, and it says what the formula is, never how it
+comes out — so it is no help in guessing the answer, and the tutor should not
+treat it as one. The clock and the mode are chosen here.
 
 **Play.** The left column has the move table, the search path and the controls
 (*Prune*, *Back up*, *Restart*, *Cancel*). The centre has the goal, the program

@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "curry-howard-game",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "Play the Curry–Howard game with a tutor at your elbow: the game opens in your own browser and Claude follows the position move by move.",
       "author": {
         "name": "Juan Manuel Serrano"

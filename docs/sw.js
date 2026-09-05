@@ -19,7 +19,7 @@
  *    unchanged constant guaranteed they would not.
  */
 
-const CACHE = 'curry-howard-shell-a4b9c26938fe';
+const CACHE = 'curry-howard-shell-942a6bf33856';
 
 /* The files a rebuild changes. Served network-first so a new build is picked up
    the moment it exists; the cache is the offline fallback, not the source. */
