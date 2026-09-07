@@ -5,6 +5,14 @@ counts the games**, so `0.1.x` is the simply typed lambda calculus alone, `0.2.0
 is the day the next one lands, and `1.0.0` waits until at least two of them are
 here and stable.
 
+## 0.1.2 — 2026-09-07
+
+One fix: the goal field's name and a long formula no longer crowd each other.
+The name never wrapped or grew, but it still sat beside the formula at full
+width; hovering or focusing the field now collapses it to nothing, by a
+transition rather than by unmounting it, so the input still never jumps on its
+own.
+
 ## 0.1.1 — 2026-09-05
 
 A catalogue twice the size, the rules table in each reading's own words, and
