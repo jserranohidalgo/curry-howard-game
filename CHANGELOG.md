@@ -5,6 +5,27 @@ counts the games**, so `0.1.x` is the simply typed lambda calculus alone, `0.2.0
 is the day the next one lands, and `1.0.0` waits until at least two of them are
 here and stable.
 
+## 0.1.3 — 2026-09-08
+
+Two fixes to the rules table's hover card, and one to the idiomatic reading.
+
+**The card appears only where the cell offers a move.** It used to appear over
+every cell alike, including the greyed ones — describing, over a cell that cannot
+be clicked, a move that is not on offer. A cell that is inapplicable, struck,
+waiting for a resource or absent now says nothing on hover, and neither does a
+dead row inside a cell that unfolds.
+
+**`Ax` reads as a rule.** Its card drew the bar with nothing over it and the side
+condition `(a ∈ Γ)` beside the name — a symbol the game introduces nowhere, in a
+label long enough to wrap over the figure and land on the conclusion. It is now
+the hypothesis over its own conclusion, which is how the game draws that rule
+everywhere else.
+
+**A curried signature collapses along its whole spine.** In the idiomatic
+reading, `¬A ∧ ¬B → ¬(A ∨ B)` kept an inner `ab2 =>` and its `match`: an expected
+function type is announced at every arrow of `A => B => C`, not only the first,
+so the partial-function literal now fires down the spine.
+
 ## 0.1.2 — 2026-09-07
 
 One fix: the goal field's name and a long formula no longer crowd each other.

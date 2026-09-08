@@ -323,12 +323,13 @@ button.ghost:focus-visible {
 .rules-cell:hover > .rule-hint, .move:hover > .rule-hint { display: block; }
 .move { position: relative; }
 .hint-rule + .hint-rule { margin-top: 7px; padding-top: 7px; border-top: 1px dashed var(--grey-700); }
-.hint-fig { position: relative; display: inline-block; text-align: center; padding-right: 22px; }
+.hint-fig { display: inline-flex; align-items: center; gap: 9px; }
+.hint-deriv { display: flex; flex-direction: column; text-align: center; }
 .hint-premises { display: flex; align-items: flex-end; justify-content: center; gap: 16px; min-height: 1.3em; }
 .hint-premise { display: flex; flex-direction: column; align-items: center; white-space: pre; }
 .hint-bar { border-top: 1px solid currentColor; margin: 3px 0; }
 .hint-conclusion { white-space: pre; }
-.hint-name { position: absolute; right: 0; top: 50%; transform: translateY(-40%); font-size: 9.5px; color: var(--grey-400); }
+.hint-name { white-space: nowrap; font-size: 9.5px; color: var(--grey-400); }
 .hint-code { white-space: pre-wrap; overflow-wrap: anywhere; }
 .rule-hint .atom { font-style: italic; color: var(--grey-300) !important; }
 .rule-hint .kw { color: var(--grey-400); }
