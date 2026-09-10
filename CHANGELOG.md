@@ -5,6 +5,34 @@ counts the games**, so `0.1.x` is the simply typed lambda calculus alone, `0.2.0
 is the day the next one lands, and `1.0.0` waits until at least two of them are
 here and stable.
 
+## 0.1.4 — 2026-09-10
+
+Four fixes to the setup screen, the verdict and the play itself, all raised by
+the author.
+
+**A new parameter takes the focus.** *Add parameter* used to leave the
+keyboard wherever it was, so writing several parameters cost a click per row
+on top of a line per row. The new row claims the caret the moment it appears.
+
+**This session remembers the whole game, not just the goal.** A row in *This
+session* named only the formula it had been played on; clicking it back in
+offered a fresh signature under whatever mode and time limit happened to be
+selected next. It now remembers the mode and the limit too, and restores both
+along with the goal.
+
+**Selection follows the move, not the position's first hole.** Filling a hole
+used to drop the selection to whatever sits leftmost across the whole
+derivation — jumping away from the very holes the move had just opened, deep
+in the tree, to something built earlier and unrelated. It now follows those
+new holes instead, and falls back to the position's first hole only when the
+move leaves nothing of its own behind (`Ax`).
+
+**The Logician verdict widens for a case split.** Two sub-derivations side by
+side, before `∨E`'s line joins them, are as wide as *Both*'s two columns — but
+the card carrying a single reading was capped narrower, so the tree spilled
+past its own frame onto the dimmed backdrop behind it. It is wider now, and
+scrolls if a proof still outgrows it.
+
 ## 0.1.3 — 2026-09-08
 
 Two fixes to the rules table's hover card, and one to the idiomatic reading.
